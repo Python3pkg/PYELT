@@ -26,6 +26,7 @@ def init_test_ref_mappings():
 
 
 
+
 class TestCase_Mappings(unittest.TestCase):
     def setUp(self):
         self.pipeline = get_global_test_pipeline()
