@@ -5,5 +5,6 @@
 5.	Met crontab -l kun je je huidige crontab bekijken
 
 
+
 Wat je met bovenstaande entry gedaan hebt,
 is dat om 10.45u iedere dag van de maand, iedere maand en iedere dag van de week (kortom: dagelijks) je script (pyelt.sh op /opt/CLINICS-DWH2.0/) wordt afgetrapt.
