@@ -440,7 +440,7 @@ Bijvoorbeeld, we maken een pipe aan met de naam 'timeff', met als bronsysteem ee
         """
         Registreert de database functie.
 
-        :param func: de functie die geregistreert wordt
+        :param func: de functie die geregistreerd wordt
 
 
         """

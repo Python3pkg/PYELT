@@ -841,3 +841,548 @@ CREATE OR REPLACE VIEW {dv}.{view_name} AS
                   autovacuum_enabled=true
                 );""".format(**params)
             self.execute(sql, 'create exception table')
+
+
+
+
+######################################################################################################################
+
+
+class DdlRef(Ddl):
+    def __init__(self, pipe: 'Pipe') -> None:
+        super().__init__(pipe, pipe.pipeline.dwh.ref)
+        self.ddl_sor = DdlSor(pipe)
+
+
+#####################################
+    # Ref
+    #####################################
+
+    """
+    nieuw schema "Ref". Hierin komen de tabellen te staan van de verschillende valuesets afkomstig uit Nictiz.
+
+    """
+    def create_or_alter_entity(self, entity: DvEntity) -> None:  # ipv DvEntity: RefEntity?
+        ref = self.dwh.ref
+        entity_is_changed = False
+        if not ref.is_reflected:
+            ref.reflect()
+        hub_name = entity.get_hub_name()
+        params = {}
+        params['hub'] = hub_name
+        params.update(self._get_fixed_params())
+        if not hub_name in ref:
+            params['fixed_hub_columns_def'] = self.__get_fixed_hub_columns_def()
+
+            sql = """CREATE TABLE IF NOT EXISTS {ref}.{hub} (
+                          {fixed_hub_columns_def},
+                          type text,
+                          bk text NOT NULL,
+                          CONSTRAINT {hub}_pkey PRIMARY KEY (_id),
+                          CONSTRAINT {hub}_bk_unique UNIQUE (bk)
+                    )
+                    WITH (
+                      OIDS=FALSE,
+                      autovacuum_enabled=true
+                    );""".format(**params)
+            self.execute(sql, 'create <blue>{}</>'.format(hub_name))
+            entity_is_changed = True
+        sats = entity.get_sats()
+        for sat in sats.values():
+            self.__create_or_alter_sat(sat, entity)
+
+
+        if entity_is_changed:
+            self.create_or_alter_view(entity)
+
+    def __create_or_alter_sat(self, sat, hub_or_link):
+        ref = self.dwh.ref
+        params = {}
+        params.update(self._get_fixed_params())
+        if hub_or_link.__base__ == DvEntity:
+            hub_name = hub_or_link.get_hub_name()
+            params['hub_or_link'] = hub_name
+        elif hub_or_link.__base__ == Link:
+            link_name = hub_or_link.get_name()
+            params['hub_or_link'] = link_name
+        sat_name = sat.get_name()
+        params['sat'] = sat_name
+        if not sat_name in ref:
+            params['fixed_sat_columns_def'] = self.__get_fixed_sat_columns_def()
+            params['sat_columns_def'] = self.__get_sat_column_names_with_types(sat)
+            if not params['sat_columns_def']:
+                return
+            params['sat_pk_fields'] = '_id, _runid'
+            if sat.__base__ == HybridSat:
+                params['sat_pk_fields'] = '_id, _runid, type'
+                params['fixed_sat_columns_def'] = self.__get_fixed_sat_columns_def(True)
+
+            sql = """CREATE TABLE IF NOT EXISTS {ref}.{sat} (
+                      {fixed_sat_columns_def},
+                      {sat_columns_def},
+                      CONSTRAINT {sat}_pkey PRIMARY KEY ({sat_pk_fields}),
+                      CONSTRAINT fk_{sat}_{hub_or_link} FOREIGN KEY (_id) REFERENCES {ref}.{hub_or_link} (_id) MATCH SIMPLE
+                )
+                WITH (
+                  OIDS=FALSE,
+                  autovacuum_enabled=true
+                ); """.format(**params)
+            self.execute(sql, 'create <cyan>{}</>'.format(params['sat']))
+            entity_is_changed = True
+        else:
+            sat_tbl = Table(sat_name, ref)
+            sat_tbl.reflect()
+            add_fields = ''
+            for col_name, col in sat.__dict__.items():
+                if isinstance(col, Column):
+                    if not col.name:
+                        col.name = col_name
+                    if not col.name in sat_tbl:
+                        add_fields += 'ADD COLUMN {} {}, '.format(col.name, col.type)
+            add_fields = add_fields[:-2]
+            if add_fields:
+                params['add_fields'] = add_fields
+                sql = """ALTER TABLE {ref}.{sat} {add_fields}; """.format(**params)
+                self.dwh.confirm_execute(sql, 'alter <cyan>{}</> '.format(params['sat']))
+                entity_is_changed = True
+                # result = input('\r\nWil je de volgende wijzigingen aanbrengen in de database? (j=ja;n=negeer)\r\n{}\r\n'.format(sql))
+                # if result.strip().lower()[:1] == 'j' or result.strip().lower()[:1] == 'y':
+                #     self.execute(sql, 'alter sat table ' + params['sat'])
+                #     entity_is_changed = True
+
+    def __get_sat_column_names_with_types_old(self, sat_cls):
+        fields = ''
+        import inspect
+        for attr in inspect.getmembers(sat_cls):
+            col_name = attr[0]
+            col = attr[1]
+            if col == Column:
+                if not col.name:
+                    col.name = col_name
+                fields += '{} {}, '.format(col.name, col.type)
+        fields = fields[:-2]
+        return fields
+
+    def __get_sat_column_names_with_types(self, sat_cls):
+        fields = ''
+        for col_name, col in sat_cls.__ordereddict__.items():
+            if isinstance(col, Column):
+                if not col.name:
+                    col.name = col_name
+                fields += '{} {}, '.format(col.name, col.type)
+        fields = fields[:-2]
+        return fields
+
+    def create_or_alter_link(self, cls_link: Link) -> None:
+        ref = self.dwh.ref
+        if not ref.is_reflected:
+            ref.reflect()
+
+        link_name = cls_link.get_name()
+        params = {}
+        params['link'] = link_name
+        params.update(self._get_fixed_params())
+        if not link_name in ref:
+            params['fixed_link_columns_def'] = self.__get_fixed_link_columns_def()
+            params['link_columns_def'] = self.__get_link_column_names(cls_link)
+            params['foreign_key_constraints'] = self.__get_link_fk_constraints(cls_link)
+            params['link_indexes'] = self.__get_link_indexes(cls_link)
+
+            sql = """CREATE TABLE IF NOT EXISTS {ref}.{link} (
+                          {fixed_link_columns_def},
+                          type text,
+                          {link_columns_def},
+                          CONSTRAINT {link}_pkey PRIMARY KEY (_id),
+                          {foreign_key_constraints}
+                    )
+                    WITH (
+                      OIDS=FALSE,
+                      autovacuum_enabled=true
+                    );
+
+                    {link_indexes}""".format(**params)
+            self.execute(sql, 'create <blue>{}</>'.format(link_name))
+        else:
+            # Kijken naar wijzigingen
+            link_tbl = Table(link_name, ref)
+            if not link_tbl.is_reflected:
+                link_tbl.reflect()
+            add_fields = ''
+            sql_indexes = ''
+            for prop_name, link_ref in cls_link.__dict__.items():
+                if isinstance(link_ref, LinkReference):
+                    fk = link_ref.get_fk()
+                    fk_params = {'ref': self.dwh.ref.name, 'hub': link_ref.entity_cls.get_hub_name(), 'fk': link_ref.get_fk(), 'link': cls_link.get_name()}
+                    if not fk in link_tbl:
+                        add_fields += """ADD COLUMN {fk} integer, ADD CONSTRAINT {fk}_constraint FOREIGN KEY ({fk}) REFERENCES {dv}.{hub} (_id) MATCH SIMPLE,\r\n""".format(**fk_params)
+                    index_name = "ix_{link}{fk}".format(**fk_params)
+                    if not index_name in link_tbl:
+                        sql_indexes += """CREATE INDEX ix_{link}{fk} ON {ref}.{link} USING btree ({fk});\r\n""".format(**fk_params)
+            add_fields = add_fields[:-3]
+            sql_indexes = sql_indexes[:-3]
+            if add_fields:
+                params['add_fields'] = add_fields
+                sql = """ALTER TABLE {ref}.{link} {add_fields};\r\n""".format(**params)
+                sql += sql_indexes + ';'
+                # result = input('\r\nWil je de volgende wijzigingen aanbrengen in de database (j=ja;n=negeer)?\r\n{}\r\n'.format(sql))
+                # if result.strip().lower()[:1] == 'j' or result.strip().lower()[:1] == 'y':
+                self.confirm_execute(sql, 'alter <blue>{}</>'.format(link_name))
+        sats = cls_link.get_sats()
+        for sat in sats.values():
+            self.__create_or_alter_sat(sat, cls_link)
+
+
+
+
+    def __get_link_column_names(self, link_cls):
+        sql = ''
+        for prop_name, link_ref in link_cls.__dict__.items():
+            if isinstance(link_ref, LinkReference) or isinstance(link_ref, DynamicLinkReference):
+                sql += """{} integer,\r\n""".format(link_ref.get_fk())
+        sql = sql[:-3]
+        return sql
+
+    def __get_link_fk_constraints(self, link_cls):
+        sql = ''
+        for prop_name, link_ref in link_cls.__dict__.items():
+            if isinstance(link_ref, LinkReference):
+                # fk = """_fk_{}""".format(link_ref.name.lower())
+                params = {'ref': self.dwh.ref.name, 'hub': link_ref.entity_cls.get_hub_name(), 'fk': link_ref.get_fk()} #.replace('_fk_parent_', '').replace('_fk_', '')}
+                sql += """CONSTRAINT {fk}_constraint FOREIGN KEY ({fk}) REFERENCES {ref}.{hub} (_id) MATCH SIMPLE,\r\n""".format(
+                    **params)
+        sql = sql[:-3]
+        return sql
+
+    def __get_link_indexes(self, link_cls):
+        sql = ''
+        for prop_name, link_ref in link_cls.__dict__.items():
+            if isinstance(link_ref, LinkReference) or isinstance(link_ref, DynamicLinkReference):
+                params = {'ref': self.dwh.ref.name, 'fk': link_ref.get_fk(), 'link': link_cls.get_name()}
+                sql += """CREATE INDEX ix_{link}{fk} ON {ref}.{link} USING btree ({fk});\r\n""".format(**params)
+        sql = sql[:-3]
+        return sql
+
+    def __get_fixed_hub_columns_def(self):
+        sql = """
+        _id serial NOT NULL,
+        _runid numeric(8,2) NOT NULL,
+        _source_system character varying,
+        _insert_date timestamp without time zone,
+        _valid boolean DEFAULT TRUE,
+        _validation_msg character varying
+        """
+        return sql
+
+    def __get_fixed_sat_columns_def(self, is_hybrid= False):
+        sql = """
+        _id serial NOT NULL,
+        _runid numeric(8,2) NOT NULL,
+        _active boolean DEFAULT TRUE,
+        _source_system character varying,
+        _insert_date timestamp without time zone,
+        _finish_date timestamp without time zone,
+        _revision integer,
+        _valid boolean NOT NULL DEFAULT TRUE,
+        _validation_msg character varying,
+        _hash character varying
+        """
+        if is_hybrid:
+            sql = """
+        _id serial NOT NULL,
+        _runid numeric(8,2) NOT NULL,
+        _active boolean DEFAULT TRUE,
+        _source_system character varying,
+        _insert_date timestamp without time zone,
+        _finish_date timestamp without time zone,
+        _revision integer,
+        _valid boolean NOT NULL DEFAULT TRUE,
+        _validation_msg character varying,
+        _hash character varying,
+        type text NOT NULL
+        """
+        return sql
+
+    def __get_fixed_link_columns_def(self):
+        sql = """
+        _id serial NOT NULL,
+        _runid numeric(8,2) NOT NULL,
+        _source_system character varying,
+        _insert_date timestamp without time zone,
+        _valid boolean DEFAULT TRUE,
+        _validation_msg character varying
+        """
+        return sql
+
+    # def __mappings_to_sat_columns_def(self, mappings):
+    #     sql = ''
+    #     temp_fields_dict = {}
+    #     for field_map in mappings.field_mappings:
+    #         if field_map.target.name not in temp_fields_dict:
+    #             sql += """{} {},\r\n""".format(field_map.target.name, field_map.target.type)
+    #             temp_fields_dict[field_map.target.name] = field_map.target
+    #     sql = sql[:-3]
+    #     return sql
+    #
+    # def __mappings_sat_fields(self, mappings, alias):
+    #     sql = ''
+    #     for field_map in mappings.field_mappings:
+    #         # sql += """{0}.{1} AS {2}_{1}, """.format(alias, field_map.target.name, mappings.target.replace('_sat', ''))
+    #         sql += """{0}.{1} AS {1}, """.format(alias, field_map.target.name)
+    #         if field_map.ref:
+    #             # sql += """{0}.descr AS {2}_{1}_descr, """.format(field_map.ref, field_map.target.name, mappings.target.replace('_sat', ''))
+    #             sql += """{0}.descr AS {1}_descr, """.format(field_map.ref, field_map.target.name)
+    #     sql = sql[:-2]
+    #     return sql
+    #
+    # def __mappings_to_link_columns_def(self, mappings):
+    #     sql = ''
+    #
+    #     for field_mapping in mappings.field_mappings:
+    #         sql += """{} {},\r\n""".format(field_mapping.target.name, field_mapping.target.type)
+    #     sql = sql[:-3]
+    #     return sql
+    #
+    # def __mappings_to_link_fk_constraints(self, mappings):
+    #     sql = ''
+    #     for field_mapping in mappings.field_mappings:
+    #         if isinstance(field_mapping.source, ConstantValue): continue
+    #         params = {'dv': self.dwh.dv.name, 'hub': field_mapping.target.table.name, 'fk': field_mapping.target} #.replace('_fk_parent_', '').replace('_fk_', '')}
+    #         sql += """CONSTRAINT fk_{fk} FOREIGN KEY ({fk}) REFERENCES {dv}.{hub} (_id) MATCH SIMPLE,\r\n""".format(
+    #             **params)
+    #     sql = sql[:-3]
+    #     return sql
+    #
+    # def __mappings_to_link_indexes(self, mappings):
+    #     sql = ''
+    #     # for hub in mappings.hubs:
+    #     #     params = {'dv': self.dwh.dv.name, 'link': mappings.link, 'hub': hub}
+    #     #
+    #     #     sql += """-- CREATE INDEX ix_{link}_fk_{hub} ON {dv}.{link} USING btree (_fk_{hub});\r\n""".format(**params)
+    #     sql = sql[:-3]
+    #     return sql
+
+    def create_or_alter_view(self, entity_cls: 'DvEntity'):
+        ref = self.dwh.ref
+        if not ref.is_reflected:
+            ref.reflect()
+        params = {}
+        params.update(self._get_fixed_params())
+
+        view_name = entity_cls.get_hub_name().replace('_hub', '_view')
+        params['view_name'] = view_name
+        params['hub'] = entity_cls.get_hub_name()
+
+        if view_name in ref:
+            sql = """DROP VIEW {ref}.{view_name};""".format(**params)
+            self.execute(sql, 'drop view')
+
+        sql_sat_fields = ''
+        sql_join = ''
+        sql_join_refs = ''
+        index = 1
+        # for mapping_name, sat_mapping in entity_mappings.sat_mappings.items():
+        for sat_cls in entity_cls.get_sats().values():
+            params['sat'] = sat_cls.get_name()
+
+            if sat_cls.__base__ == HybridSat:
+                for type in sat_cls.get_types():
+                    params['sat_alias'] = 'sat' + str(index)
+                    params['type'] = type
+                    for col in sat_cls.get_columns():
+                        if not col.name.startswith('_'):
+                            alias = sat_cls.get_short_name() + '_' + type + '_' + col.name
+                            alias = alias.replace(' ', '_')
+                            if col.name == 'type':
+                                idx = sat_cls.name.index('_sat') + 5
+                                alias = sat_cls.name[idx:] + '_type'
+                        sql_sat_fields += "sat{}.{} AS {}, ".format(index, col.name, alias)
+
+                    sql_join += """LEFT OUTER JOIN {ref}.{sat} AS {sat_alias} ON {sat_alias}._id = hub._id AND {sat_alias}._active AND ({sat_alias}.type = '{type}' OR {sat_alias}.type IS NULL)\r\n        """.format(
+                        **params)
+                    index += 1
+
+            else:
+                params['sat_alias'] = 'sat' + str(index)
+                for col in sat_cls.get_columns():
+                    if not col.name.startswith('_'):
+                        alias = sat_cls.get_short_name() + '_' + col.name
+                        if col.name == 'type':
+                            idx = sat_cls.name.index('_sat') + 5
+                            alias = sat_cls.name[idx:] + '_type'
+                        sql_sat_fields += "sat{}.{} AS {}, ".format(index, col.name, alias)
+                        if isinstance(col, Columns.RefColumn):
+                            params['ref_alias'] = col.name + '_' + col.ref_type
+                            # if col.name in col.ref_type:
+                            #     ref_type = ref_type.replace(col.name, '')
+                            # elif col.ref_type in col.name:
+                            #     ref_type = ref_type.replace(col.ref_type, '')
+                            params['ref_type'] = col.ref_type
+                            params['ref_field'] = col.name
+                            sql_join_refs += """LEFT OUTER JOIN {ref}._ref_values AS {ref_alias} ON {sat_alias}.{ref_field}::text = {ref_alias}.code AND {ref_alias}.valueset_naam = '{ref_type}' AND {ref_alias}._active\r\n        """.format(
+                                **params)
+                            sql_sat_fields += "{ref_alias}.weergave_naam AS {ref_alias}_omschr, ".format(**params)
+
+
+
+                            # sql_sat_fields += self.mappings_sat_fields(sat_mapping, params['sat_alias']) + ','
+                sql_join += """LEFT OUTER JOIN {ref}.{sat} AS {sat_alias} ON {sat_alias}._id = hub._id AND {sat_alias}._active\r\n        """.format(**params)
+                index += 1
+
+                # for field_map in sat_mapping.field_mappings:
+                #     if field_map.ref:
+                #         params['ref_type'] = field_map.ref
+                #         params['ref_field'] = field_map.target.name
+                #         sql_join += """LEFT OUTER JOIN {dv}.referenties AS {ref_type} ON {sat_alias}.{ref_field}::text = {ref_type}.code AND {ref_type}.type = '{ref_type}'\r\n        """.format(
+                #             **params)
+
+        sql_sat_fields = sql_sat_fields[:-2]
+        params['sat_fields'] = sql_sat_fields
+        params['join'] = sql_join + sql_join_refs
+
+        if params['sat_fields']:
+            sql = """--DROP VIEW {ref}.{view_name};
+CREATE OR REPLACE VIEW {ref}.{view_name} AS
+    SELECT hub._id, hub.bk, hub.type, hub._runid, hub._source_system, True as _valid,
+        {sat_fields}
+    FROM {ref}.{hub} hub
+        {join}""".format(**params)
+            self.execute(sql, 'create <darkcyan>{}</>'.format(view_name))
+        else:
+            sql = """CREATE OR REPLACE VIEW {ref}.{view_name} AS
+                SELECT hub._id, hub.bk, hub.type,
+                    hub._runid as _runid, hub._source_system as hub_source_system, True as _valid
+                FROM {ref}.{hub} hub
+                    {join}""".format(**params)
+            self.execute(sql, 'create <darkcyan>{}</>'.format(view_name))
+        ref.is_reflected = False
+
+    def create_or_alter_ensemble_view(self, ensemble):
+
+        ref = self.dwh.ref
+        ref.reflect()
+
+        ensemble = TestEnsemble()  #todo: aanpassen want nu nog hardgecodeerd.
+        inspector = reflection.Inspector.from_engine(ref.db.engine)
+
+        # aanmaken van sub_strings voor sql:
+        sql_ensemblename = 'ref.ensembleview'
+        sql_columns = ''
+        sql_selectedtables = ''
+        sql_conditions = ''
+        params = {'schema_name': 'ref'}
+
+        for alias, cls in ensemble.entity_dict.items():
+            cls.init_cls()
+            cls.entity_name = cls.get_name().strip('_entity')
+            cls.view_name = cls.get_name().strip('_entity') + '_view'
+
+            if cls.__base__ == Link:
+                sql_selectedtables += ', {schema_name}.'.format(**params) + cls.get_name()
+            else:
+                if alias == str(cls.get_name()):  # geen alias opgegeven; dus alias is hetzelfde als de entity_name
+                    sql_selectedtables += ', {schema_name}.{} as {}'.format(cls.view_name, cls.entity_name,**params)
+                    sql_conditions += ' AND {0}._id = fk_{0}_hub'.format(cls.entity_name)
+                    sql_ensemblename = sql_ensemblename.replace('.', '.{}_'.format(cls.entity_name)) # hier wordt de opgehaalde entiteit geplaatst direct achter de punt en voor datgene dat eerst na de punt volgde.
+
+                    cols = inspector.get_columns(cls.view_name, ref.name)
+                    for col in cols:
+                        col_name = col['name']
+                        sql_columns += ', {0}.{1} as {0}_{1}'.format(cls.entity_name,col_name)
+
+                else:  # alias voor entity_name is opgegeven
+                    sql_selectedtables += ', {schema_name}.{} as {}'.format(cls.view_name,alias,**params)
+                    sql_conditions += ' AND {0}._id = fk_{0}_{1}_hub'.format(alias,cls.entity_name)
+                    sql_ensemblename = sql_ensemblename.replace('v.', 'v.{}_'.format(alias))
+
+                    cols = inspector.get_columns(cls.view_name, ref.name)
+                    for col in cols:
+                        col_name = col['name']
+                        sql_columns += ', {0}.{1} as {0}_{1}'.format(alias,col_name)
+
+        sql_columns = sql_columns[2:]  # verwijder de "' " van het begin van de string
+        sql_selectedtables = sql_selectedtables[2:]
+        sql_conditions = sql_conditions[4:]
+
+        if ensemble.name:  # als ensemble.name niet een lege string is dan wordt de aangemaakte string sql_ensemblename gebaseerd op de gebruikte entiteiten vervangen door de vooraf opgegeven alternatieve naam (bv 'test_view')
+             sql_ensemblename = '{schema_name}.'.format(**params) + ensemble.name
+
+        params.update ({'ensemble': sql_ensemblename, 'columns': sql_columns, 'selected tables': sql_selectedtables, 'conditions': sql_conditions})
+        sql = """CREATE OR REPLACE VIEW {ensemble} AS SELECT {columns} FROM {selected tables} WHERE {conditions}; ALTER TABLE {ensemble} OWNER TO postgres;""".format(**params)
+
+        self.execute(sql, '<darkcyan>{}</>'.format(sql_ensemblename))
+
+
+    def create_or_alter_ref(self):
+        #maak reftable
+        ref = self.dwh.ref
+        if not ref.is_reflected:
+            ref.reflect()
+        if '_ref_values' not in ref:
+            params = {}
+            params.update(self._get_fixed_params())
+            params['fixed_columns_def'] = self.__get_fixed_sat_columns_def()
+            sql = """CREATE TABLE IF NOT EXISTS {ref}._ref_valuesets (
+                      {fixed_columns_def},
+                      naam text,
+                      oid text,
+                      datum_van text,
+                      datum_tot text,
+                      status text,
+                      versie text,
+                      projecten text,
+                      CONSTRAINT ref_valueset_pkey PRIMARY KEY (_id),
+                      CONSTRAINT ref_valueset_oid_unique UNIQUE (oid)
+                      --CONSTRAINT ref_valueset_naam_unique UNIQUE (naam)
+                )
+                WITH (
+                  OIDS=FALSE,
+                  autovacuum_enabled=true
+                );
+
+
+                CREATE TABLE IF NOT EXISTS {ref}._ref_values (
+                      {fixed_columns_def},
+                      --fk_valueset_type int,
+                      fk_parent int,
+                      temp_id text,
+                      temp_fk text,
+                      valueset_oid text,
+                      valueset_naam text,
+                      niveau text,
+                      niveau_type text,
+                      code text,
+                      code_hl7 text,
+                      weergave_naam text,
+                      omschrijving text,
+                      omschrijving2 text,
+                      CONSTRAINT ref_values_pkey PRIMARY KEY (_id),
+                      CONSTRAINT ref_values_code_unique UNIQUE (_runid, valueset_naam, code, niveau)
+                )
+                WITH (
+                  OIDS=FALSE,
+                  autovacuum_enabled=true
+                );""".format(**params)
+            self.execute(sql, 'create valuesets tables')
+
+    def create_or_alter_table_exceptions(self):
+        ref = self.dwh.ref
+        if not ref.is_reflected:
+            ref.reflect()
+        if '_exceptions' not in ref:
+            params = {}
+            params.update(self._get_fixed_params())
+            params['fixed_columns_def'] = self.__get_fixed_hub_columns_def()
+            sql = """CREATE TABLE IF NOT EXISTS {ref}._exceptions (
+                      {fixed_columns_def},
+                      schema text,
+                      table_name text,
+                      message text,
+                      key_fields text,
+                      fields text,
+                      CONSTRAINT _exceptions_pkey PRIMARY KEY (_id)
+                )
+                WITH (
+                  OIDS=FALSE,
+                  autovacuum_enabled=true
+                );""".format(**params)
+            self.execute(sql, 'create exception table')
