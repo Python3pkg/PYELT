@@ -15,8 +15,8 @@ from pyelt.helpers.validations import DomainValidator, MappingsValidator
 from pyelt.mappings.sor_to_dv_mappings import SorToRefMapping, EntityViewToEntityMapping, EntityViewToLinkMapping, SorToEntityMapping, SorToLinkMapping
 from pyelt.mappings.source_to_sor_mappings import SourceToSorMapping
 from pyelt.mappings.validations import SorValidation, DvValidation, Validation
-from pyelt.process.ddl import DdlSor, DdlDv, Ddl
-from pyelt.process.etl import EtlSourceToSor, EtlSorToDv
+from pyelt.process.ddl import DdlSor, DdlDv, Ddl, DdlRef
+from pyelt.process.etl import EtlSourceToSor, EtlSorToDv, EtlSorToRef
 from pyelt.sources.databases import SourceDatabase
 
 
@@ -140,6 +140,7 @@ Voorbeeld::
             self.dwh.create_schemas_if_not_exists(pipe.sor.name)
             pipe.create_sor_from_mappings()
             pipe.create_dv_from_domain()
+            pipe.create_ref_from_mappings()
             pipe.run_extra_sql()
             pipe.create_db_functions()
 
@@ -446,6 +447,19 @@ Bijvoorbeeld, we maken een pipe aan met de naam 'timeff', met als bronsysteem ee
         """
         self.db_functions[func.name] = func
 
+    def create_ref_from_mappings(self):
+        """
+        Voert ddl uit van de sor-laag. Maakt eventuele nieuwe sor-tabellen aan aan de hand van de gedefiniëerde mappings zoals bijvoorbeeld in "timeff_mappings_old.py".
+
+
+        """
+        self.pipeline.logger.log('START CREATE REF'.format(self.pipeline.runid), indent_level=2)
+        ddl = DdlRef(self)
+        for mapping in self.mappings:
+            if isinstance(mapping, SorToRefMapping):
+                ddl.create_or_alter_ref(mapping)
+        self.pipeline.logger.log('FINISH CREATE REF'.format(self.pipeline.runid), indent_level=2)
+
     def create_sor_from_mappings(self):
         """
         Voert ddl uit van de sor-laag. Maakt eventuele nieuwe sor-tabellen aan aan de hand van de gedefiniëerde mappings zoals bijvoorbeeld in "timeff_mappings_old.py".
@@ -554,13 +568,14 @@ Bijvoorbeeld, we maken een pipe aan met de naam 'timeff', met als bronsysteem ee
         ddl = DdlDv(self)
 
         # self.create_db_from_domain()
-        etl = EtlSorToDv(self)
+        # etl = EtlSorToDv(self)
+        etl_ref = EtlSorToRef(self)
         if 'refs' in parts:
             self.pipeline.logger.log('START FROM SOR TO REFS', indent_level=1)
             #DV refs
             for mapping in self.mappings:
                 if isinstance(mapping, SorToRefMapping):
-                    etl.sor_to_ref(mapping)
+                    etl_ref.sor_to_ref(mapping)
             self.pipeline.logger.log('FINISH FROM SOR TO REFS', newline=True, indent_level=1)
 
         # DV Entities (Hubs en Sats)

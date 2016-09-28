@@ -66,6 +66,9 @@ class BaseProcess():
         params['sor'] = self.pipe.sor.name
         params['rdv'] = self.dwh.rdv.name
         params['dv'] = self.dwh.dv.name
+        params['ref'] = self.dwh.ref.name
+
+
         return params
 
 class ProcesStep:

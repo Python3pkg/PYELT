@@ -30,6 +30,8 @@ class Dwh(Database):
         self.rdv = Schema('rdv', self) #type: Schema
         self.dv = Schema('dv', self) #type: Schema
         self.sys = Schema('sys', self) #type: Schema
+        self.ref = Schema('ref', self) #type: Schema
+
 
     def get_or_create_sor_schema(self, config: Dict[str,str] = {}) -> 'Schema':
         if not 'sor_schema' in config:
@@ -134,6 +136,9 @@ class Dwh(Database):
         if not self.dv.name in self.reflected_schemas:
             sql = """CREATE SCHEMA {};""".format(self.dv.name)
             self.confirm_execute(sql, 'nieuw dv schema aanmaken')
+        if not self.ref.name in self.reflected_schemas:
+            sql = """CREATE SCHEMA {};""".format(self.ref.name)
+            self.confirm_execute(sql, 'nieuw ref schema aanmaken')
         if not self.sys.name in self.reflected_schemas:
             sql = """CREATE SCHEMA {};""".format(self.sys.name)
             self.confirm_execute(sql, 'nieuw sys schema aanmaken')

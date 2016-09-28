@@ -20,6 +20,7 @@ def init_test_ref_mappings():
         ref_mapping = SorToRefMapping('patient_hstage', 'geslacht_types2')
         ref_mapping.map_code_field('patient_hstage.geslacht')
         ref_mapping.map_descr_field('patient_hstage.geslacht')
+        ref_mapping.filter = "'valueset = 'geslacht'"
         mappings.append(ref_mapping)
 
         return mappings
