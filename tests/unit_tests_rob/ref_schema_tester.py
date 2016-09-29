@@ -1,3 +1,5 @@
+from sqlalchemy import create_engine
+
 from pyelt.mappings.sor_to_dv_mappings import SorToRefMapping
 from pyelt.pipeline import Pipeline
 from pyelt.helpers.encrypt import SimpleEncrypt
@@ -71,6 +73,31 @@ vektis_uzovi_config = {
     'data_path': general_config['data_root'] + '/vektis/UZOVI/',
     'active': False
 }
+
+
+def get_distinct_valueset():  # verzamel de verschillende valueset namen uit de hstage en stop ze in een list. gebruik
+    #deze list om doorheen te lopen om iedere valueset in een aparte tabel te plaatsen. verander eventueel de naam (geen hoofdletters geen spaties maar underscores)
+    sql = """Select distinct valueset
+              from sor_nictiz.valuesets_hstage"""
+
+    conn_string = general_config['conn_dwh']
+    engine = create_engine(conn_string)
+    connection = engine.raw_connection()
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    connection.commit()
+
+    result = cursor.fetchall()
+    # mystring = ','.join(map(str, result))
+    # mystring = mystring.replace("(", "")
+    # mystring = mystring.replace(",)", "")
+    # mystring = mystring.replace('"', '')
+    # mylist = list(mystring)
+
+    return result
+
+
+print(get_distinct_valueset())
 
 def init_sor_to_ref_mappings(pipe):
     mappings = []
