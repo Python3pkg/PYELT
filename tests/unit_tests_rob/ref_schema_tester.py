@@ -2,6 +2,7 @@ from pyelt.mappings.sor_to_dv_mappings import SorToRefMapping
 from pyelt.pipeline import Pipeline
 from pyelt.helpers.encrypt import SimpleEncrypt
 
+
 general_config = {
     'log_path': '/logs/',
     'ddl_log_path': '/logs/ddl/',
@@ -71,22 +72,38 @@ vektis_uzovi_config = {
     'active': False
 }
 
+def init_sor_to_ref_mappings(pipe):
+    mappings = []
+    # sor = pipe.sor
+
+    ref_mapping = SorToRefMapping('valuesets_hstage', 'adres_soort')  # ipv 'Adres soort'
+    ref_mapping.map_code_field('valuesets_hstage.code')
+    ref_mapping.map_descr_field('valuesets_hstage.displayname')
+    ref_mapping.map_level_field('valuesets_hstage.niveau')
+    ref_mapping.map_leveltype_field('valuesets_hstage.niveau_type')
+
+    mappings.append(ref_mapping)
+    return mappings
+
+
 pipeline = Pipeline(general_config)
 pipe = pipeline.get_or_create_pipe("nictiz", nictiz_config)
-
-
-# ref_mapping = SorToRefMapping({'M': 'man', 'V': 'vrouw', 'O': 'onbekend'}, 'geslacht_types')
-# pipe.mappings.append(ref_mapping)
 #
-# ref_mapping = SorToRefMapping({'9': 'patienten', '7': 'mdw'}, 'relatie_soorten')
-# pipe.mappings.append(ref_mapping)
+#
+pipe.mappings.extend(init_sor_to_ref_mappings(pipe))
 
-# todo maak een een hstage tabel om mee mee te testen.
-mappings = []
-ref_mapping = SorToRefMapping('valuesets_hstage', 'Adres soort')
-ref_mapping.map_code_field('valuesets_hstage.id')
-ref_mapping.map_descr_field('valuesets_hstage.valueset')
-mappings.append(ref_mapping)
+
+
+
+ref_mapping = SorToRefMapping({'M': 'man', 'V': 'vrouw', 'O': 'onbekend'}, 'geslacht_types')
+pipe.mappings.append(ref_mapping)
+
+ref_mapping = SorToRefMapping({'9': 'patienten', '7': 'mdw'}, 'relatie_soorten')
+pipe.mappings.append(ref_mapping)
+
+
+
+
 #
 #
 

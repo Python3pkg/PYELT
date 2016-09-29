@@ -423,50 +423,50 @@ class LinkFieldMapping(FieldMapping):
 #         self.source_descr_field = source_descr_field
 #
 
-class SorToRefMapping(BaseTableMapping):
-    def __init__(self, source: Union[str, Dict[str, str]], ref_type: str = '') -> None:
-        target = '_valuesets'
-        super().__init__(source, target)
-
-        self.ref_type = ref_type
-        self.source_type_field = ''
-        self.source_level_field = "''"
-
-        if not isinstance(source, dict):
-            self.sor_table = source
-            self.source_code_field = ''
-            self.source_descr_field = "''"
-
-    def map_code_field(self, source_code_field: str) -> None:
-        target = 'code'
-        if '.' in source_code_field:
-            source_code_field = source_code_field.replace(self.sor_table + '.', '')
-        self.map_field(source_code_field, target)
-        self.source_code_field = source_code_field
-
-    def map_descr_field(self, source_desc_field: str) -> None:
-        target = 'weergave_naam'
-        if '.' in source_desc_field:
-            source_desc_field = source_desc_field.replace(self.sor_table + '.', '')
-        self.map_field(source_desc_field, target)
-        self.source_descr_field = source_desc_field
-
-    def map_type_field(self, source_type_field: str, source_oid_field: str = "''") -> None:
-        target = 'valueset_type_naam'
-
-        self.map_field(source_type_field, target)
-        self.source_type_field = source_type_field
-        if source_oid_field:
-            target = 'valueset_type_oid'
-            self.map_field(source_oid_field, target)
-
-        self.source_oid_field = source_oid_field
-
-    def map_level_field(self, source_level_field: str) -> None:
-        target = 'niveau'
-
-        self.map_field(source_level_field, target)
-        self.source_level_field = source_level_field
+# class SorToRefMapping(BaseTableMapping):
+#     def __init__(self, source: Union[str, Dict[str, str]], ref_type: str = '') -> None:
+#         target = '_valuesets'
+#         super().__init__(source, target)
+#
+#         self.ref_type = ref_type
+#         self.source_type_field = ''
+#         self.source_level_field = "''"
+#
+#         if not isinstance(source, dict):
+#             self.sor_table = source
+#             self.source_code_field = ''
+#             self.source_descr_field = "''"
+#
+#     def map_code_field(self, source_code_field: str) -> None:
+#         target = 'code'
+#         if '.' in source_code_field:
+#             source_code_field = source_code_field.replace(self.sor_table + '.', '')
+#         self.map_field(source_code_field, target)
+#         self.source_code_field = source_code_field
+#
+#     def map_descr_field(self, source_desc_field: str) -> None:
+#         target = 'weergave_naam'
+#         if '.' in source_desc_field:
+#             source_desc_field = source_desc_field.replace(self.sor_table + '.', '')
+#         self.map_field(source_desc_field, target)
+#         self.source_descr_field = source_desc_field
+#
+#     def map_type_field(self, source_type_field: str, source_oid_field: str = "''") -> None:
+#         target = 'valueset_type_naam'
+#
+#         self.map_field(source_type_field, target)
+#         self.source_type_field = source_type_field
+#         if source_oid_field:
+#             target = 'valueset_type_oid'
+#             self.map_field(source_oid_field, target)
+#
+#         self.source_oid_field = source_oid_field
+#
+#     def map_level_field(self, source_level_field: str) -> None:
+#         target = 'niveau'
+#
+#         self.map_field(source_level_field, target)
+#         self.source_level_field = source_level_field
 
     ###
     import inspect
@@ -935,14 +935,14 @@ class SorToRefMapping(BaseTableMapping):
         self.source_oid_field = source_oid_field
 
     def map_level_field(self, source_level_field: str) -> None:
-        target = 'level'
+        target = 'niveau'
 
         self.map_field(source_level_field, target)
         self.source_level_field = source_level_field
 
     ###
     def map_leveltype_field(self, source_leveltype_field: str) -> None:
-        target = 'type'
+        target = 'niveau_type'
 
 
         self.map_field(source_leveltype_field, target)

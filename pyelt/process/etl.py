@@ -408,16 +408,16 @@ class EtlSorToRef(BaseEtl):
                     WHERE floor(hstg._runid) = floor({runid})
                       AND hstg._valid AND hstg._active
                       AND NOT EXISTS (SELECT 1 FROM {ref}.{target} ref WHERE ref.valueset_naam = '{ref_type}' AND ref.code = hstg.{source_code_field}
-                                    AND ref.weergave_naam = hstg.{source_descr_field} AND ref.niveau = {source_level_field} AND ref.niveau_type = {source_leveltype_field)};""".format(**params)
+                                    AND ref.weergave_naam = hstg.{source_descr_field} AND ref.niveau = level AND ref.niveau_type = type);""".format(**params)
             else:
                 insert_sql = """
-                    INSERT INTO {ref}.{target} (_runid, _active, _source_system, _insert_date, _revision, valueset_naam, code, weergave_naam, niveau, niveau_type))
-                    SELECT DISTINCT {runid}, True, '{source_system}', now(), 0, '{ref_type}', {source_code_field}, {source_descr_field}, {source_level_field}, {source_leveltype_field}
+                    INSERT INTO {ref}.{target} (_runid, _active, _source_system, _insert_date, _revision, valueset_naam, code, weergave_naam, niveau, niveau_type)
+                    SELECT DISTINCT {runid}, True, '{source_system}', now(), 0, '{ref_type}', {source_code_field}, {source_descr_field}, level, type
                     FROM {sor}.{sor_table} hstg
                     WHERE floor(hstg._runid) = floor({runid})
                       AND hstg._valid AND hstg._active
                       AND NOT EXISTS (SELECT 1 FROM {ref}.{target} ref WHERE ref.valueset_naam = '{ref_type}' AND ref.code = hstg.{source_code_field}
-                                    AND ref.weergave_naam = {source_descr_field} AND ref.niveau = {source_level_field} AND ref.niveau_type = {source_leveltype_field);""".format(**params)
+                                    AND ref.weergave_naam = {source_descr_field} AND ref.niveau = level AND ref.niveau_type = type);""".format(**params)
 
             self.execute(insert_sql, 'insert refs')
 
