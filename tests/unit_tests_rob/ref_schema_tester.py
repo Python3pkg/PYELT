@@ -82,10 +82,11 @@ pipe = pipeline.get_or_create_pipe("nictiz", nictiz_config)
 # pipe.mappings.append(ref_mapping)
 
 # todo maak een een hstage tabel om mee mee te testen.
-ref_mapping = SorToRefMapping('patient_hstage', 'geslacht_types2')
-ref_mapping.map_code_field('patient_hstage.geslacht')
-ref_mapping.map_descr_field('patient_hstage.geslacht')
-# mappings.append(ref_mapping)
+mappings = []
+ref_mapping = SorToRefMapping('valuesets_hstage', 'Adres soort')
+ref_mapping.map_code_field('valuesets_hstage.id')
+ref_mapping.map_descr_field('valuesets_hstage.valueset')
+mappings.append(ref_mapping)
 #
 #
 
