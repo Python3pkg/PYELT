@@ -394,8 +394,8 @@ class EtlSorToRef(BaseEtl):
 
             elif mappings.source_type_field:
                 insert_sql = """
-                    INSERT INTO {ref}.target (_runid, _active, _source_system, _insert_date, _revision, valueset_oid, valueset_naam, code, weergave_naam, niveau, niveau_type)
-                    SELECT DISTINCT {runid}, True, '{source_system}', now(), 0, {source_oid_field}, {source_type_field}, {source_code_field}, {source_descr_field}, {source_level_field}, {source_leveltype_field}
+                    INSERT INTO {ref}.{target} (_runid, _active, _source_system, _insert_date, _revision, valueset_oid, valueset_naam, code, weergave_naam, niveau, niveau_type)
+                    SELECT DISTINCT {runid}, True, '{source_system}', now(), 0, valueset, {source_type_field}, {source_code_field}, {source_descr_field}, {source_level_field}, {source_leveltype_field}
                     FROM {sor}.{sor_table} hstg
                     WHERE floor(hstg._runid) = floor({runid})
                       AND hstg._valid AND hstg._active
@@ -413,11 +413,11 @@ class EtlSorToRef(BaseEtl):
             else:
                 insert_sql = """
                     INSERT INTO {ref}.{target} (_runid, _active, _source_system, _insert_date, _revision, valueset_naam, code, weergave_naam, niveau, niveau_type)
-                    SELECT DISTINCT {runid}, True, '{source_system}', now(), 0, '{ref_type}', {source_code_field}, {source_descr_field}, hstg.level, hstg.type
+                    SELECT DISTINCT {runid}, True, '{source_system}', now(), 0, valueset, {source_code_field}, {source_descr_field}, hstg.level, hstg.type
                     FROM {sor}.{sor_table} hstg
                     WHERE floor(hstg._runid) = floor({runid})
                       AND hstg._valid AND hstg._active
-                      AND NOT EXISTS (SELECT 1 FROM {ref}.{target} ref WHERE ref.valueset_naam = hstg.{ref_type} AND ref.code = hstg.{source_code_field}
+                      AND NOT EXISTS (SELECT 1 FROM {ref}.{target} ref WHERE ref.valueset_naam = hstg.valueset AND ref.code = hstg.{source_code_field}
                                     AND ref.weergave_naam = hstg.{source_descr_field} AND ref.niveau = hstg.level AND ref.niveau_type = hstg.type);""".format(**params)
 
             self.execute(insert_sql, 'insert refs')
