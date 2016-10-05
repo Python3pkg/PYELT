@@ -109,7 +109,6 @@ def transform_valueset_name(valueset):
     tempstr = tempstr.replace(")", "")
     return tempstr
 
-
 def init_sor_to_ref_mappings(pipe):
     mappings = []
     # sor = pipe.sor
