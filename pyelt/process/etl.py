@@ -400,7 +400,7 @@ class EtlSorToRef(BaseEtl):
                     WHERE floor(hstg._runid) = floor({runid})
                       AND hstg._valid AND hstg._active
                       AND NOT EXISTS (SELECT 1 FROM {ref}.{target} ref WHERE ref.valueset_naam = hstg.{source_type_field} AND ref.code = hstg.{source_code_field}
-                                AND ref.weergave_naam = hstg.{source_descr_field} AND ref.niveau = {source_level_field});""".format(**params)
+                                AND ref.weergave_naam = hstg.{source_descr_field} AND ref.niveau = {source_level_field})""".format(**params)
             elif mappings.source_code_field and not mappings.source_descr_field:
                 insert_sql = """
                     INSERT INTO {ref}.{target} (_runid, _active, _source_system, _insert_date, _revision, valueset_naam, code, weergave_naam, niveau, niveau_type)
@@ -409,7 +409,7 @@ class EtlSorToRef(BaseEtl):
                     WHERE floor(hstg._runid) = floor({runid})
                       AND hstg._valid AND hstg._active
                       AND NOT EXISTS (SELECT 1 FROM {ref}.{target} ref WHERE ref.valueset_naam = '{ref_type}' AND ref.code = hstg.{source_code_field}
-                                    AND ref.weergave_naam = hstg.{source_descr_field} AND ref.niveau = level AND ref.niveau_type = type);""".format(**params)
+                                    AND ref.weergave_naam = hstg.{source_descr_field} AND ref.niveau = level AND ref.niveau_type = type)""".format(**params)
             else:
                 insert_sql = """
                     INSERT INTO {ref}.{target} (_runid, _active, _source_system, _insert_date, _revision, valueset_naam, code, weergave_naam, niveau, niveau_type)
@@ -418,8 +418,9 @@ class EtlSorToRef(BaseEtl):
                     WHERE floor(hstg._runid) = floor({runid})
                       AND hstg._valid AND hstg._active
                       AND NOT EXISTS (SELECT 1 FROM {ref}.{target} ref WHERE ref.valueset_naam = hstg.valueset AND ref.code = hstg.{source_code_field}
-                                    AND ref.weergave_naam = hstg.{source_descr_field} AND ref.niveau = hstg.level AND ref.niveau_type = hstg.type);""".format(**params)
-
+                                    AND ref.weergave_naam = hstg.{source_descr_field} AND ref.niveau = hstg.level AND ref.niveau_type = hstg.type)""".format(**params)
+            if mappings.filter:
+                insert_sql += ' AND ' + mappings.filter
             self.execute(insert_sql, 'insert refs')
 
             # oude is nog actief, maar runid is kleiner. Dit is het laatste record

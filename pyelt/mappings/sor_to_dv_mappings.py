@@ -902,6 +902,7 @@ class SorToRefMapping(BaseTableMapping):
         self.ref_type = ref_type
         self.source_type_field = ''
         self.source_level_field = "''"
+        self.filter = filter
 
 
         if not isinstance(source, dict):

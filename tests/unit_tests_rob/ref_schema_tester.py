@@ -134,7 +134,7 @@ def init_sor_to_ref_mappings(pipe):
 
 # adresnl_filter = "update_type = 'delete'"
 #     mapping = SorToEntityMapping('adresnl_hstage', AdresNL, sor, filter=adresnl_filter)
-        sql_string = 'valueset = "{}"'.format(valueset_kind)
+        sql_string = "valueset = '{}'".format(valueset_kind)
         ref_filter = sql_string
         ref_mapping = SorToRefMapping('valuesets_hstage', '{}'.format(valueset_name), sor, filter=ref_filter)  # ipv 'Adres soort'
         ref_mapping.map_code_field('valuesets_hstage.code')
@@ -145,14 +145,14 @@ def init_sor_to_ref_mappings(pipe):
         mappings.append(ref_mapping)
     return mappings
 
-
 pipeline = Pipeline(general_config)
 pipe = pipeline.get_or_create_pipe("nictiz", nictiz_config)
-"""let op! ref_schema_tester maakt gebruik van een reeds gemaakte sor laag """
+"""let op! ref_schema_tester maakt gebruik van een reeds gemaakte sor laag, let op dat de floor run_id van de sor
+ laag en van de toekomstige ref laag wel hetzelfd is, anders krijg je namelijk een lege tabel. Indien dit het geval
+ is dan kan je in pgadmin het volgende runnen met een aangepaste _runid bv 2.0 of 3.0 etc: update sor_nictiz.valuesets_hstage set _runid = 2.0 """
 # mappings = SourceToSorMapping('valueset_hstage',pipe)
 # pipe.mappings.extend(mappings)
 pipe.mappings.extend(init_sor_to_ref_mappings(pipe))
-
 
 
 """alternatief voor ref_mapping; via een opgegeven dictionary:"""
@@ -161,12 +161,5 @@ pipe.mappings.extend(init_sor_to_ref_mappings(pipe))
 #
 # ref_mapping = SorToRefMapping({'9': 'patienten', '7': 'mdw'}, 'relatie_soorten')
 # pipe.mappings.append(ref_mapping)
-
-
-
-
-
-#
-#
 
 pipeline.run()
