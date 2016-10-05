@@ -128,7 +128,11 @@ def init_sor_to_ref_mappings(pipe):
         valueset_name = transform_valueset_name(valueset)  # in valueset_name zijn oa spaties eruit gehaald door de functie "transform_valueset_name"
 
 
-        ref_mapping = SorToRefMapping('valuesets_hstage', '{}'.format(valueset_name))  # ipv 'Adres soort'
+# adresnl_filter = "update_type = 'delete'"
+#     mapping = SorToEntityMapping('adresnl_hstage', AdresNL, sor, filter=adresnl_filter)
+
+        ref_filter = "valueset = '{}".format(valueset)
+        ref_mapping = SorToRefMapping('valuesets_hstage', '{}'.format(valueset_name), filter=ref_filter)  # ipv 'Adres soort'
         ref_mapping.filter = "valueset = '{}".format(valueset)
         ref_mapping.map_code_field('valuesets_hstage.code')
         ref_mapping.map_descr_field('valuesets_hstage.displayname')
