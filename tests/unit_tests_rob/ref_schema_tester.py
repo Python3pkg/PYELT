@@ -113,18 +113,18 @@ def init_sor_to_ref_mappings(pipe):
     mappings = []
     # sor = pipe.sor
     valuesets = get_distinct_valueset()
-    for valueset in valuesets:
-        valueset_name = transform_valueset_name(valueset)
+    # for valueset in valuesets:
+    #     valueset_name = transform_valueset_name(valueset)
 
-    # ref_mapping = SorToRefMapping('valuesets_hstage', 'adres_soort')  # ipv 'Adres soort'
-        ref_mapping = SorToRefMapping('valuesets_hstage', '{}'.format(valueset_name))  # ipv 'Adres soort'
+    ref_mapping = SorToRefMapping('valuesets_hstage', 'adres_soort')  # ipv 'Adres soort'
+    #     ref_mapping = SorToRefMapping('valuesets_hstage', '{}'.format(valueset_name))  # ipv 'Adres soort'
 
-        ref_mapping.map_code_field('valuesets_hstage.code')
-        ref_mapping.map_descr_field('valuesets_hstage.displayname')
-        ref_mapping.map_level_field('valuesets_hstage.niveau')
-        ref_mapping.map_leveltype_field('valuesets_hstage.niveau_type')
+    ref_mapping.map_code_field('valuesets_hstage.code')
+    ref_mapping.map_descr_field('valuesets_hstage.displayname')
+    ref_mapping.map_level_field('valuesets_hstage.niveau')
+    ref_mapping.map_leveltype_field('valuesets_hstage.niveau_type')
 
-        mappings.append(ref_mapping)
+    mappings.append(ref_mapping)
     return mappings
 
 
@@ -136,13 +136,13 @@ pipe.mappings.extend(init_sor_to_ref_mappings(pipe))
 
 
 
-"""alternatief voor ref_mapping; via een opgegeven dictionary:
+"""alternatief voor ref_mapping; via een opgegeven dictionary:"""
 # ref_mapping = SorToRefMapping({'M': 'man', 'V': 'vrouw', 'O': 'onbekend'}, 'geslacht_types')
 # pipe.mappings.append(ref_mapping)
 #
 # ref_mapping = SorToRefMapping({'9': 'patienten', '7': 'mdw'}, 'relatie_soorten')
 # pipe.mappings.append(ref_mapping)
-"""
+
 
 
 

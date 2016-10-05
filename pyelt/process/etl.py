@@ -436,6 +436,70 @@ class EtlSorToRef(BaseEtl):
         except Exception as ex:
             self.logger.log_error(mappings.name, err_msg=ex.args[0])
 
+"""oude versie"""
+        #
+        #         insert_sql = """
+        #
+        #             CREATE TEMP TABLE _ref_temp (code text, weergave_naam text);
+        #
+        #             INSERT INTO _ref_temp (code, weergave_naam)
+        #             VALUES {values};
+        #
+        #             INSERT INTO {ref}.{target} (_runid, _active, _source_system, _insert_date, _revision, valueset_naam, code, weergave_naam)
+        #             SELECT DISTINCT {runid}, True, '{source_system}', now(), 0, '{ref_type}', code, weergave_naam
+        #             FROM _ref_temp tmp
+        #             WHERE
+        #               NOT EXISTS (SELECT 1 FROM {ref}.{target} ref WHERE ref.valueset_naam = '{ref_type}' AND ref.code = tmp.code AND ref.weergave_naam = tmp.weergave_naam);
+        #
+        #
+        #
+        #             DROP TABLE _ref_temp;
+        #               """.format(**params)
+        #
+        #     elif mappings.source_type_field:
+        #         insert_sql = """
+        #             INSERT INTO {ref}.target (_runid, _active, _source_system, _insert_date, _revision, valueset_oid, valueset_naam, code, weergave_naam, niveau, niveau_type)
+        #             SELECT DISTINCT {runid}, True, '{source_system}', now(), 0, {source_oid_field}, {source_type_field}, {source_code_field}, {source_descr_field}, {source_level_field}, {source_leveltype_field}
+        #             FROM {sor}.{sor_table} hstg
+        #             WHERE floor(hstg._runid) = floor({runid})
+        #               AND hstg._valid AND hstg._active
+        #               AND NOT EXISTS (SELECT 1 FROM {ref}.{target} ref WHERE ref.valueset_naam = hstg.{source_type_field} AND ref.code = hstg.{source_code_field}
+        #                         AND ref.weergave_naam = hstg.{source_descr_field} AND ref.niveau = {source_level_field});""".format(**params)
+        #     elif mappings.source_code_field and not mappings.source_descr_field:
+        #         insert_sql = """
+        #             INSERT INTO {ref}.{target} (_runid, _active, _source_system, _insert_date, _revision, valueset_naam, code, weergave_naam, niveau, niveau_type)
+        #             SELECT DISTINCT {runid}, True, '{source_system}', now(), 0, '{ref_type}', {source_code_field}, NULL, NULL, NULL,
+        #             FROM {sor}.{sor_table} hstg
+        #             WHERE floor(hstg._runid) = floor({runid})
+        #               AND hstg._valid AND hstg._active
+        #               AND NOT EXISTS (SELECT 1 FROM {ref}.{target} ref WHERE ref.valueset_naam = '{ref_type}' AND ref.code = hstg.{source_code_field}
+        #                             AND ref.weergave_naam = hstg.{source_descr_field} AND ref.niveau = level AND ref.niveau_type = type);""".format(**params)
+        #     else:
+        #         insert_sql = """
+        #             INSERT INTO {ref}.{target} (_runid, _active, _source_system, _insert_date, _revision, valueset_naam, code, weergave_naam, niveau, niveau_type)
+        #             SELECT DISTINCT {runid}, True, '{source_system}', now(), 0, '{ref_type}', {source_code_field}, {source_descr_field}, hstg.level, hstg.type
+        #             FROM {sor}.{sor_table} hstg
+        #             WHERE floor(hstg._runid) = floor({runid})
+        #               AND hstg._valid AND hstg._active
+        #               AND NOT EXISTS (SELECT 1 FROM {ref}.{target} ref WHERE ref.valueset_naam = hstg.{ref_type} AND ref.code = hstg.{source_code_field}
+        #                             AND ref.weergave_naam = hstg.{source_descr_field} AND ref.niveau = hstg.level AND ref.niveau_type = hstg.type);""".format(**params)
+        #
+        #     self.execute(insert_sql, 'insert refs')
+        #
+        #     # oude is nog actief, maar runid is kleiner. Dit is het laatste record
+        #     insert_sql = """update {ref}.{target} current set _revision = previous._revision + 1
+        #             from {ref}.{target} previous where current._active = True AND previous._active = True AND previous.valueset_naam = current.valueset_naam AND previous.code = current.code and previous._runid < current._runid;""".format(
+        #         **params)
+        #     self.execute(insert_sql, 'update ref revision')
+        #     # nu oude inctief maken
+        #     insert_sql = """update {ref}.{target} previous set _active = False, _finish_date = current._insert_date
+        #             from {ref}.{target} current where previous._active = True AND previous.valueset_naam = current.valueset_naam AND previous.code = current.code and previous._runid < current._runid;""".format(
+        #         **params)
+        #     self.execute(insert_sql, 'update ref set old ones inactive')
+        #     self.logger.log('  FINISH {}'.format(mappings))
+        # except Exception as ex:
+        #     self.logger.log_error(mappings.name, err_msg=ex.args[0])
+
 
 
 class EtlSorToDv(BaseEtl):
