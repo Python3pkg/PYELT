@@ -110,38 +110,38 @@ def transform_valueset_name(valueset):
     return tempstr
 
 """deze versie "werkt" op 1 tabel"""
-def init_sor_to_ref_mappings(pipe):
-    mappings = []
-    ref_mapping = SorToRefMapping('valuesets_hstage', 'adres_soort')  # ipv 'Adres soort'
-    ref_mapping.map_code_field('valuesets_hstage.code')
-    ref_mapping.map_descr_field('valuesets_hstage.displayname')
-    ref_mapping.map_level_field('valuesets_hstage.niveau')
-    ref_mapping.map_leveltype_field('valuesets_hstage.niveau_type')
-    mappings.append(ref_mapping)
-    return mappings
-
-
 # def init_sor_to_ref_mappings(pipe):
 #     mappings = []
-#     # sor = pipe.sor
-#     valuesets = get_distinct_valueset()
-#     # for valueset in valuesets:
-#     #     valueset_name = transform_valueset_name(valueset)
-#
 #     ref_mapping = SorToRefMapping('valuesets_hstage', 'adres_soort')  # ipv 'Adres soort'
-#     #     ref_mapping = SorToRefMapping('valuesets_hstage', '{}'.format(valueset_name))  # ipv 'Adres soort'
-#
 #     ref_mapping.map_code_field('valuesets_hstage.code')
 #     ref_mapping.map_descr_field('valuesets_hstage.displayname')
 #     ref_mapping.map_level_field('valuesets_hstage.niveau')
 #     ref_mapping.map_leveltype_field('valuesets_hstage.niveau_type')
-#
 #     mappings.append(ref_mapping)
 #     return mappings
+
+"""verder testen:"""
+def init_sor_to_ref_mappings(pipe):
+    mappings = []
+    valuesets = get_distinct_valueset()
+    for valueset in valuesets:  # valueset is de naam van de valueset in de kolom "valueset" van de hstage; kan oa komma's en hoofdletters bevatten
+        valueset_name = transform_valueset_name(valueset)  # in valueset_name zijn oa spaties eruit gehaald door de functie "transform_valueset_name"
+
+
+        ref_mapping = SorToRefMapping('valuesets_hstage', '{}'.format(valueset_name))  # ipv 'Adres soort'
+        ref_mapping.filter = "valueset = '{}".format(valueset)
+        ref_mapping.map_code_field('valuesets_hstage.code')
+        ref_mapping.map_descr_field('valuesets_hstage.displayname')
+        ref_mapping.map_level_field('valuesets_hstage.niveau')
+        ref_mapping.map_leveltype_field('valuesets_hstage.niveau_type')
+
+        mappings.append(ref_mapping)
+    return mappings
 
 
 pipeline = Pipeline(general_config)
 pipe = pipeline.get_or_create_pipe("nictiz", nictiz_config)
+"""let op! ref_schema_tester maakt gebruik van een reeds gemaakte sor laag """
 # mappings = SourceToSorMapping('valueset_hstage',pipe)
 # pipe.mappings.extend(mappings)
 pipe.mappings.extend(init_sor_to_ref_mappings(pipe))
