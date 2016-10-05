@@ -89,40 +89,35 @@ def get_distinct_valueset():  # verzamel de verschillende valueset namen uit de 
     connection.commit()
 
     result = cursor.fetchall()
-    # mystring = ','.join(map(str, result))
-    # mystring = mystring.replace("(", "")
-    # mystring = mystring.replace(",)", "")
-    # mystring = mystring.replace('"', '')
-    # mylist = list(mystring)
-    # print(mylist)
-
     return result
 
-valuesets = get_distinct_valueset()
 
-print(valuesets)
-for valueset in valuesets:
+
+def transform_valueset_name(valueset):
     tempstr = str(valueset)
+    tempstr = tempstr.lower()
     tempstr = tempstr.replace("('", "")
     tempstr = tempstr.replace("',)", "")
-
-    print(tempstr)
-# def transform_valueset_name(valueset):
-
-
+    tempstr = tempstr.replace(" ", "_")
+    tempstr = tempstr.replace("-", "")
+    tempstr = tempstr.replace("__", "_")
+    return tempstr
 
 
 def init_sor_to_ref_mappings(pipe):
     mappings = []
     # sor = pipe.sor
-    # for valueset in valuesets:
+    valuesets = get_distinct_valueset()
+    for valueset in valuesets:
+        valueset_name = transform_valueset_name(valueset)
 
+    # ref_mapping = SorToRefMapping('valuesets_hstage', 'adres_soort')  # ipv 'Adres soort'
+        ref_mapping = SorToRefMapping('valuesets_hstage', '{}'.format(valueset_name))  # ipv 'Adres soort'
 
-    ref_mapping = SorToRefMapping('valuesets_hstage', 'adres_soort')  # ipv 'Adres soort'
-    ref_mapping.map_code_field('valuesets_hstage.code')
-    ref_mapping.map_descr_field('valuesets_hstage.displayname')
-    ref_mapping.map_level_field('valuesets_hstage.niveau')
-    ref_mapping.map_leveltype_field('valuesets_hstage.niveau_type')
+        ref_mapping.map_code_field('valuesets_hstage.code')
+        ref_mapping.map_descr_field('valuesets_hstage.displayname')
+        ref_mapping.map_level_field('valuesets_hstage.niveau')
+        ref_mapping.map_leveltype_field('valuesets_hstage.niveau_type')
 
     mappings.append(ref_mapping)
     return mappings
