@@ -94,6 +94,10 @@ def get_distinct_valueset():  # verzamel de verschillende valueset namen uit de 
 
 
 def transform_valueset_name(valueset):
+    """
+    :param valueset:
+    :return: tempstr; dit is de valueset naam maar dan ipv spaties een underscore en alles met kleine letters.
+    """
     tempstr = str(valueset)
     tempstr = tempstr.lower()
     tempstr = tempstr.replace("('", "")
@@ -101,6 +105,8 @@ def transform_valueset_name(valueset):
     tempstr = tempstr.replace(" ", "_")
     tempstr = tempstr.replace("-", "")
     tempstr = tempstr.replace("__", "_")
+    tempstr = tempstr.replace("(", "")
+    tempstr = tempstr.replace(")", "")
     return tempstr
 
 
@@ -119,7 +125,7 @@ def init_sor_to_ref_mappings(pipe):
         ref_mapping.map_level_field('valuesets_hstage.niveau')
         ref_mapping.map_leveltype_field('valuesets_hstage.niveau_type')
 
-    mappings.append(ref_mapping)
+        mappings.append(ref_mapping)
     return mappings
 
 
