@@ -898,7 +898,7 @@ class DdlRef(Ddl):
                       versie text,
                       projecten text,
                       CONSTRAINT {ref_table_name}_pkey PRIMARY KEY (_id),
-                      CONSTRAINT ref_code_unique_{ref_table_name} UNIQUE (_runid, valueset_naam, code, niveau)
+                      CONSTRAINT ref_code_unique_{ref_table_name} UNIQUE (_runid, valueset_naam, code, niveau, niveau_type)
                 )
                 WITH (
                   OIDS=FALSE,

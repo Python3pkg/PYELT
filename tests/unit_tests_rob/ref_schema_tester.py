@@ -137,12 +137,13 @@ pipe.mappings.extend(init_sor_to_ref_mappings(pipe))
 
 
 
-
-ref_mapping = SorToRefMapping({'M': 'man', 'V': 'vrouw', 'O': 'onbekend'}, 'geslacht_types')
-pipe.mappings.append(ref_mapping)
-
-ref_mapping = SorToRefMapping({'9': 'patienten', '7': 'mdw'}, 'relatie_soorten')
-pipe.mappings.append(ref_mapping)
+"""alternatief voor ref_mapping; via een opgegeven dictionary:
+# ref_mapping = SorToRefMapping({'M': 'man', 'V': 'vrouw', 'O': 'onbekend'}, 'geslacht_types')
+# pipe.mappings.append(ref_mapping)
+#
+# ref_mapping = SorToRefMapping({'9': 'patienten', '7': 'mdw'}, 'relatie_soorten')
+# pipe.mappings.append(ref_mapping)
+"""
 
 
 
