@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 
 from pyelt.mappings.sor_to_dv_mappings import SorToRefMapping
+from pyelt.mappings.source_to_sor_mappings import SourceToSorMapping
 from pyelt.pipeline import Pipeline
 from pyelt.helpers.encrypt import SimpleEncrypt
 
@@ -93,15 +94,29 @@ def get_distinct_valueset():  # verzamel de verschillende valueset namen uit de 
     # mystring = mystring.replace(",)", "")
     # mystring = mystring.replace('"', '')
     # mylist = list(mystring)
+    # print(mylist)
 
     return result
 
+valuesets = get_distinct_valueset()
 
-print(get_distinct_valueset())
+print(valuesets)
+for valueset in valuesets:
+    tempstr = str(valueset)
+    tempstr = tempstr.replace("('", "")
+    tempstr = tempstr.replace("',)", "")
+
+    print(tempstr)
+# def transform_valueset_name(valueset):
+
+
+
 
 def init_sor_to_ref_mappings(pipe):
     mappings = []
     # sor = pipe.sor
+    # for valueset in valuesets:
+
 
     ref_mapping = SorToRefMapping('valuesets_hstage', 'adres_soort')  # ipv 'Adres soort'
     ref_mapping.map_code_field('valuesets_hstage.code')
@@ -115,8 +130,8 @@ def init_sor_to_ref_mappings(pipe):
 
 pipeline = Pipeline(general_config)
 pipe = pipeline.get_or_create_pipe("nictiz", nictiz_config)
-#
-#
+# mappings = SourceToSorMapping('valueset_hstage',pipe)
+# pipe.mappings.extend(mappings)
 pipe.mappings.extend(init_sor_to_ref_mappings(pipe))
 
 
