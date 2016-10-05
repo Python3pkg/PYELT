@@ -895,9 +895,9 @@ class LinkFieldMapping(FieldMapping):
 #
 
 class SorToRefMapping(BaseTableMapping):
-    def __init__(self, source: Union[str, Dict[str, str]], ref_type: str = '') -> None:
+    def __init__(self, source: Union[str, Dict[str, str]], ref_type: str = '', filter: str = '') -> None:
         target = ref_type
-        super().__init__(source, target)
+        super().__init__(source, target,filter)
 
         self.ref_type = ref_type
         self.source_type_field = ''
