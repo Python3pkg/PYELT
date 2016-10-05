@@ -126,12 +126,17 @@ def init_sor_to_ref_mappings(pipe):
     valuesets = get_distinct_valueset()
     for valueset in valuesets:  # valueset is de naam van de valueset in de kolom "valueset" van de hstage; kan oa komma's en hoofdletters bevatten
         valueset_name = transform_valueset_name(valueset)  # in valueset_name zijn oa spaties eruit gehaald door de functie "transform_valueset_name"
-
+        valueset_kind = str(valueset)
+        valueset_kind = valueset_kind.replace("('", "")
+        valueset_kind = valueset_kind.replace("',)", "")
+        # print(valueset_kind)
 
 # adresnl_filter = "update_type = 'delete'"
 #     mapping = SorToEntityMapping('adresnl_hstage', AdresNL, sor, filter=adresnl_filter)
-
-        ref_filter = "valueset = '{}".format(valueset)
+        sql_string = 'valueset = "{}"'.format(valueset_kind)
+        # print(sql_string)
+        ref_filter = sql_string
+        # ref_filter = "valueset = '{}'".format(valueset_kind)
         ref_mapping = SorToRefMapping('valuesets_hstage', '{}'.format(valueset_name), filter=ref_filter)  # ipv 'Adres soort'
         ref_mapping.filter = "valueset = '{}".format(valueset)
         ref_mapping.map_code_field('valuesets_hstage.code')
