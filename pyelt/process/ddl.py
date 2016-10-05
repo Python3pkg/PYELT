@@ -874,7 +874,7 @@ class DdlRef(Ddl):
             params = {}
             params.update(self._get_fixed_params())
             params['fixed_columns_def'] = self.__get_fixed_sat_columns_def()
-            params['ref_table_name'] = mapping.target.name
+            params['ref_table_name'] = mapping.ref_type  # ref_type is de table_name
             print('params ddl: ', params)
 
             sql = """CREATE TABLE IF NOT EXISTS {ref}.{ref_table_name} (
