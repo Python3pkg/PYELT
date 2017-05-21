@@ -7,8 +7,8 @@ def main():
     session = DbSession(config=general_config, runid=99)
     pat_hub = Patient.cls_get_hub()
     rows = pat_hub.load()
-    for row in rows.values():
-        print(row.bk, row._id)
+    for row in list(rows.values()):
+        print((row.bk, row._id))
 
     new_hub = pat_hub.new()
     new_hub.bk = 'ajshdgashdg4'
@@ -17,13 +17,13 @@ def main():
     Patient.cls_init()
     sat = Patient.Naamgegevens()
     rows = sat.load()
-    for row in rows.values():
-        print(row._id, row._runid, row._revision, row.geslachtsnaam)
+    for row in list(rows.values()):
+        print((row._id, row._runid, row._revision, row.geslachtsnaam))
 
     new_hub = pat_hub.new()
     new_hub.bk = 'ajshdgashdg11'
     pat_hub.save()
-    print(new_hub._id)
+    print((new_hub._id))
 
     new_sat = sat.new()
     new_sat.geslachtsnaam = 'Reenen5'
@@ -35,12 +35,12 @@ def main():
     # sat is dan nog niet geladen
     # op moment dat je vraagt om de sat wordt de data van de hele in __get_attr van de entity geladen
     rows = pat_ent.load()
-    for row in rows.values():
-        print(row._id, row.bk)
+    for row in list(rows.values()):
+        print((row._id, row.bk))
         # na aanroep van row.naamgegevens wordt die al geladen
-        print(row.naamgegevens.db_status)
-        print(row.naamgegevens.initialen)
-        print(row.naamgegevens.db_status)
+        print((row.naamgegevens.db_status))
+        print((row.naamgegevens.initialen))
+        print((row.naamgegevens.db_status))
         print('--------')
 
 

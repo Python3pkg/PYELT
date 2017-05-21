@@ -25,7 +25,7 @@ class BaseProcess():
     #     self.steps[name] = ProcesStep(name, func, params, result)
 
     def run(self) -> None:
-        for step_name, step in self.steps.items():
+        for step_name, step in list(self.steps.items()):
             result = step.execute()
             self.logger.log(step_name)
 

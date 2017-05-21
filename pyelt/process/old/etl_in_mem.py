@@ -397,7 +397,7 @@ class EtlSorToDv(BaseEtl):
                     row['_id'] = hub_id
                     row['is_new'] = is_new
 
-                    for sat_mappings in mappings.sat_mappings.values():
+                    for sat_mappings in list(mappings.sat_mappings.values()):
                         self.__sor_to_sat(row, params, sat_mappings)
 
             # elif mappings.key_mappings:
@@ -583,7 +583,7 @@ AND hstg._valid AND {filter};""".format(
 
                 self.execute(sql, 'update fk_link in sor table')
 
-            for sat_mappings in mappings.sat_mappings.values():
+            for sat_mappings in list(mappings.sat_mappings.values()):
                 self.__sor_to_sat(params, sat_mappings)
             self.logger.log('  FINISH {}'.format(mappings))
         except Exception as ex:
@@ -677,7 +677,7 @@ AND hstg._valid AND {filter};""".format(
 
             if isinstance(mappings.source, dict):
                 values = ''
-                for code, descr in mappings.source.items():
+                for code, descr in list(mappings.source.items()):
                     params['code'] = code
                     params['descr'] = descr
                     values += "('{code}', '{descr}'),\r\n".format(**params)
@@ -785,7 +785,7 @@ AND hstg._valid AND {filter};""".format(
             #     **params)
             # self.execute(sql,  'update fk_hub in sor table')
 
-            for sat_mappings in mappings.sat_mappings.values():
+            for sat_mappings in list(mappings.sat_mappings.values()):
                 self.logger.log('    START {}'.format(sat_mappings))
 
                 satparams = sat_mappings.__dict__

@@ -138,7 +138,7 @@ class SorSatMapping(BaseTableMapping):
             if field not in fields:
                 fields += field
 
-        for name, value in target_json_dict.items():
+        for name, value in list(target_json_dict.items()):
             sql_snippet = """json_build_object("""
             for field_map in value:
                 sql_snippet += """'{0}', {0}, """.format(field_map.source.name)
@@ -191,7 +191,7 @@ class SorToLinkMapping(BaseTableMapping):
         self.sat_mappings = {}  # type: Dict[str, Sat]
 
     def get_fk_name(self, entity_cls):
-        for prop_name, entity in self.target.__dict__.items():
+        for prop_name, entity in list(self.target.__dict__.items()):
             if entity == entity_cls or entity == entity_cls.__base__:
                 fk = """fk_{}""".format(entity.cls_get_hub_name())
                 if prop_name.lower() != entity.__name__.lower():
@@ -511,7 +511,7 @@ class SorToValueSetMapping(BaseTableMapping):
             if field not in fields:
                 fields += field
 
-        for name, value in target_json_dict.items():
+        for name, value in list(target_json_dict.items()):
             sql_snippet = """json_build_object("""
             for field_map in value:
                 sql_snippet += """'{0}', {0}, """.format(field_map.source.name)

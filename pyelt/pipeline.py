@@ -119,7 +119,7 @@ Voorbeeld::
         """
         self.send_start_mail()
         self.dwh.create_schemas_if_not_exists()
-        for schema in self.dwh.schemas.values():
+        for schema in list(self.dwh.schemas.values()):
             if schema.schema_type == DwhLayerTypes.SYS:
                 self.create_sys_tables(schema)
         self.runid = self.create_new_runid()
@@ -134,14 +134,14 @@ Voorbeeld::
 
         self.logger.log('<b>START RUN {0:.2f}</>'.format(self.runid))
         self.logger.log('<b>START DDL</>')
-        for schema in self.dwh.schemas.values():
+        for schema in list(self.dwh.schemas.values()):
             if schema.schema_type == DwhLayerTypes.VALSET:
                 self.create_valueset_from_domain(schema)
-        for schema in self.dwh.schemas.values():
+        for schema in list(self.dwh.schemas.values()):
             if schema.schema_type == DwhLayerTypes.DV:
                 self.create_dv_from_domain(schema)
 
-        for pipe in self.pipes.values():
+        for pipe in list(self.pipes.values()):
             self.logger.log('DDL PIPE ' + pipe.source_system, indent_level=1)
             self.dwh.create_schemas_if_not_exists(pipe.sor.name)
             pipe.create_sor_from_mappings()
@@ -151,7 +151,7 @@ Voorbeeld::
 
             self.logger.log('FINISH DDL PIPE ' + pipe.source_system, indent_level=1)
 
-        for name, module in self.datamart_modules.items():
+        for name, module in list(self.datamart_modules.items()):
             self.dwh.create_schemas_if_not_exists(name)
         self.create_datamarts()
 
@@ -165,7 +165,7 @@ Voorbeeld::
 
         #to do asyncstatus_msg
         self.logger.log('<b>START ETL</>')
-        for pipe in self.pipes.values():
+        for pipe in list(self.pipes.values()):
             self.logger.log('=====================================')
             self.logger.log('===== START PIPE {}'.format(pipe.source_system))
             self.logger.log('=====================================')
@@ -207,7 +207,7 @@ Voorbeeld::
         self.logger.log('PRE-RUN VALIDATE DOMAINS')
         validation_msg = ''
         validator = DomainValidator()
-        for domain_module in self.domain_modules.values():
+        for domain_module in list(self.domain_modules.values()):
             validation_msg += validator.validate(domain_module)
 
         if validation_msg:
@@ -227,7 +227,7 @@ Voorbeeld::
         """
         self.logger.log('VALIDATE MAPPINGS BEFORE DDL')
         validation_msg = ''
-        for pipe in self.pipes.values():
+        for pipe in list(self.pipes.values()):
             validation_msg += pipe.validate_mappings_before_ddl()
         if validation_msg:
             self.logger.log('  ' + validation_msg)
@@ -246,7 +246,7 @@ Voorbeeld::
         """
         self.logger.log('VALIDATE MAPPINGS')
         validation_msg = ''
-        for pipe in self.pipes.values():
+        for pipe in list(self.pipes.values()):
             validation_msg += pipe.validate_mappings_after_ddl()
         if validation_msg:
             self.logger.log('  ' + validation_msg)
@@ -311,7 +311,7 @@ Voorbeeld::
         if not dv_version:
             dv_version = 'NULL'
         sor_versions = ''
-        for pipe in self.pipes.values():
+        for pipe in list(self.pipes.values()):
             sor_version = self.dwh.get_layer_version(pipe.sor.name)
             sor_versions += '{}={};'.format(pipe.sor.name, sor_version)
         sql = """UPDATE sys.runs SET finish_date = now(), exceptions = '{1}', dv_version = {2}, sor_versions = '{3}' WHERE runid={0}""".format(self.runid,
@@ -373,13 +373,13 @@ Voorbeeld::
             if HubEntity in cls.__mro__:
                 cls.__dbschema__ = schema_name
                 cls.Hub.__dbschema__ = schema_name
-                for sat in cls.__sats__.values():
+                for sat in list(cls.__sats__.values()):
                     sat.__dbschema__ = schema_name
 
             if LinkEntity in cls.__mro__:
                 cls.__dbschema__ = schema_name
                 cls.Link.__dbschema__ = schema_name
-                for sat in cls.__sats__.values():
+                for sat in list(cls.__sats__.values()):
                     sat.__dbschema__ = schema_name
 
 
@@ -430,10 +430,10 @@ Voorbeeld::
         ddl = DdlValset(self, schema)
 
         ddl.create_or_alter_table_exceptions(schema)
-        domain_modules = {k:v for k,v in self.domain_modules.items() if k.startswith(schema.name + '.')}
+        domain_modules = {k:v for k,v in list(self.domain_modules.items()) if k.startswith(schema.name + '.')}
 
         # VALUESETS
-        for module_name, module in domain_modules.items():
+        for module_name, module in list(domain_modules.items()):
             for name, cls in inspect.getmembers(module, inspect.isclass):
                 if DvValueset in cls.__mro__:
                     ddl.create_or_alter_valueset(cls)
@@ -447,10 +447,10 @@ Voorbeeld::
         ddl = DdlDv(self, schema)
 
         ddl.create_or_alter_table_exceptions(schema)
-        domain_modules = {k:v for k,v in self.domain_modules.items() if k.startswith(schema.name + '.')}
+        domain_modules = {k:v for k,v in list(self.domain_modules.items()) if k.startswith(schema.name + '.')}
 
         #CREATE HUBS AND SATS
-        for module_name, module in domain_modules.items():
+        for module_name, module in list(domain_modules.items()):
             # if not module_name.startswith(schema.name + '.'):
             #     continue
             for name, cls in inspect.getmembers(module, inspect.isclass):
@@ -459,7 +459,7 @@ Voorbeeld::
 
         # LINKS
         # Dezelfde for-loop wordt hieronder herhaald, want eerst moeten alle hubs zijn aangemaakt voordat de links aangemaakt kunnen worden met ref. integriteit op de database
-        for module_name, module in domain_modules.items():
+        for module_name, module in list(domain_modules.items()):
             for name, cls in inspect.getmembers(module, inspect.isclass):
                 if LinkEntity in cls.__mro__:
                     ddl.create_or_alter_link(cls)
@@ -467,13 +467,13 @@ Voorbeeld::
         if 'create_views' in self.config and self.config['create_views']:
             #CREATE VIEWS
             # Dezelfde for-loop wordt hieronder herhaald, want eerst moeten alle parent hubs zijn aangemaakt voordat de vies met child hubs kunnen worden aangemaakt
-            for module_name,module in domain_modules.items():
+            for module_name,module in list(domain_modules.items()):
                 for name, cls in inspect.getmembers(module, inspect.isclass):
                     if HubEntity in cls.__mro__ and cls != HubEntity:
                         ddl.create_or_alter_view(cls)
 
             # Dezelfde for-loop wordt hieronder herhaald, want eerst moeten alle views en links zijn aangemaakt voordat de ensemble_view gemaakt kan worden
-            for module_name,module in domain_modules.items():
+            for module_name,module in list(domain_modules.items()):
                 for name, cls in inspect.getmembers(module, inspect.isclass):
                     if cls.__base__ == EnsembleView:
                         ddl.create_or_alter_ensemble_view(cls)
@@ -486,7 +486,7 @@ Voorbeeld::
 
         """
         self.logger.log('START CREATE DATAMARTS', indent_level=2)
-        for name, module in self.datamart_modules.items():
+        for name, module in list(self.datamart_modules.items()):
             ddl = DdlDatamart(self, self.dwh.get_or_create_datamart_schema(name))
             for name, cls in inspect.getmembers(module, inspect.isclass):
                 if cls.__base__ == Dim:

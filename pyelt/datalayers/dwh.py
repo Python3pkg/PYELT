@@ -63,7 +63,7 @@ class Dwh(Database):
 
     @property
     def sors(self):
-        return {k:v for k,v in self.schemas.items() if v.schema_type == DwhLayerTypes.SOR}
+        return {k:v for k,v in list(self.schemas.items()) if v.schema_type == DwhLayerTypes.SOR}
 
     @property
     def sys(self):
@@ -91,7 +91,7 @@ class Dwh(Database):
 
     def create_schemas_if_not_exists(self, schema_name: str ='') -> None:
         self.reflect_schemas()
-        for schema_name in self.schemas.keys():
+        for schema_name in list(self.schemas.keys()):
             if not schema_name in self.reflected_schemas:
                 sql = """CREATE SCHEMA {};""".format(schema_name)
                 self.confirm_execute(sql, 'nieuw ' + schema_name + ' schema aanmaken')
@@ -101,8 +101,8 @@ class Dwh(Database):
             self.confirm_execute(sql, 'nieuw schema aanmaken')
             sor = Sor(schema_name, self)
             self.schemas[schema_name] = sor
-        dv_schemas = {k:v for k,v in self.schemas.items() if v.schema_type == DwhLayerTypes.DV}
-        for dv_schema_name in dv_schemas.keys():
+        dv_schemas = {k:v for k,v in list(self.schemas.items()) if v.schema_type == DwhLayerTypes.DV}
+        for dv_schema_name in list(dv_schemas.keys()):
             if not dv_schema_name in self.reflected_schemas:
                 sql = """CREATE SCHEMA {};""".format(dv_schema_name)
                 self.confirm_execute(sql, 'nieuw ' + dv_schema_name + ' schema aanmaken')

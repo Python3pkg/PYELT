@@ -31,7 +31,7 @@ class DomainValidator:
     def validate_entity(self, entity_cls):
         validation_msg = ''
         sat_classes = entity_cls.cls_get_sats()
-        for sat_cls in sat_classes.values():
+        for sat_cls in list(sat_classes.values()):
             columns = sat_cls.cls_get_columns()
             if not columns:
                 validation_msg += 'Domainclass <red>{}.{}</> is niet geldig. Sat <red>{}</> zonder velden.\r\n'.format(entity_cls.__module__, entity_cls.__name__, sat_cls.cls_get_name())
@@ -89,7 +89,7 @@ class DomainValidator:
                 werkgever = LinkReference(Organisatie)
             </>""".format(
                     link_cls.__module__, link_cls.__name__)
-            for link_ref in link_refs.values():
+            for link_ref in list(link_refs.values()):
                 if '_hub' not in link_ref.hub.__dbname__:
                     validation_msg += 'Link <red>{}.{}</> is niet geldig. LinkReference <red>{}</> moet verwijzen naar een Hub.\r\n'.format(
                         link_cls.__module__, link_cls.__name__, link_ref.name)
@@ -242,7 +242,7 @@ class MappingsValidator:
             # if not '.*' in mappings.source.sql:
             #     validation_msg += 'Mapping <red>{}</> is niet geldig. Geldige fk naar hub ontbreekt in sql. Je moet [tabel]_hstage.* gebruiken voor de sor-tabel die de fk naar de hub bevat. Deze moet reeds eerder zijn gemapt op de hub als SorTable().\r\n'.format(
             #         mappings.name)
-        for sat_mappings in mappings.sat_mappings.values():
+        for sat_mappings in list(mappings.sat_mappings.values()):
             fld_mappings_names = [fld_mapping.name for fld_mapping in sat_mappings.field_mappings]
             # testen op uniek
             if len(fld_mappings_names) != len(set(fld_mappings_names)):

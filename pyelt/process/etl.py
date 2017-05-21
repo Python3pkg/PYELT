@@ -485,7 +485,7 @@ AND {filter} AND {filter_runid};""".format( **params)
             # fk_name = "fk_{relation_type}{hub}".format(**params)
             # EtlSourceToSor(self.pipe).validate_duplicate_fks(mappings.source, dv_schema, fk_name)
 
-            for sat_mappings in mappings.sat_mappings.values():
+            for sat_mappings in list(mappings.sat_mappings.values()):
                 self.__sor_to_sat(params, sat_mappings)
 
             # deletes
@@ -735,7 +735,7 @@ AND hstg._valid AND {filter};""".format(
 
                 self.execute(sql, 'update fk_link in sor table')
 
-            for sat_mappings in mappings.sat_mappings.values():
+            for sat_mappings in list(mappings.sat_mappings.values()):
                 self.__sor_to_sat(params, sat_mappings)
 
             #deletes
@@ -893,7 +893,7 @@ WHERE _id NOT IN (SELECT _id FROM {dv_schema}.{record_satus_sat}) AND
 
             if isinstance(mappings.source, dict):
                 values = ''
-                for code, descr in mappings.source.items():
+                for code, descr in list(mappings.source.items()):
                     params['code'] = code
                     params['descr'] = descr
                     values += "('{code}', '{descr}'),\r\n".format(**params)
@@ -1001,7 +1001,7 @@ WHERE _id NOT IN (SELECT _id FROM {dv_schema}.{record_satus_sat}) AND
             #     **params)
             # self.execute(sql,  'update fk_hub in sor table')
 
-            for sat_mappings in mappings.sat_mappings.values():
+            for sat_mappings in list(mappings.sat_mappings.values()):
                 self.logger.log('    START {}'.format(sat_mappings))
 
                 satparams = sat_mappings.__dict__

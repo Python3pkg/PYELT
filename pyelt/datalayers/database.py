@@ -102,7 +102,7 @@ class Database():
                 sql_sliced = sql[:50] + '...'
             else:
                 sql_sliced = sql
-            result = input('{}\r\nWil je de volgende wijzigingen aanbrengen in de database?\r\n{}\r\n'.format(log_message.upper(), sql_sliced))
+            result = eval(input('{}\r\nWil je de volgende wijzigingen aanbrengen in de database?\r\n{}\r\n'.format(log_message.upper(), sql_sliced)))
             if result.strip().lower()[:1] == 'j' or result.strip().lower()[:1] ==  'y':
                 self.execute(sql, log_message)
             else:

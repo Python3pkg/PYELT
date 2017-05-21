@@ -96,12 +96,12 @@ rows: {}
         params['columns_def'] = self.__get_columns_def(table_cls)
         params['constraints'] = ''
         constraints = self.__get_constraints(table_cls)
-        for constraint_sql in constraints.values():
+        for constraint_sql in list(constraints.values()):
             params['constraints'] += constraint_sql + ',\r\n'
         params['constraints'] = params['constraints'][:-3]
         params['indexes'] = ''
         indexes = self.__get_indexes(table_cls)
-        for index_sql in indexes.values():
+        for index_sql in list(indexes.values()):
             params['indexes'] += index_sql + ';\r\n'
         params['indexes'] = params['indexes'][:-3]
         if not table_name in schema:
@@ -127,7 +127,7 @@ rows: {}
             for col in table_cls.__cols__:
                 if not col.name in db_tbl:
                     add_fields += 'ADD COLUMN {} {}, '.format(col.name, col.type)
-            for constraint_name, constraint_sql in constraints.items():
+            for constraint_name, constraint_sql in list(constraints.items()):
                 if not constraint_name in db_tbl:
                     add_fields += 'ADD {}, '.format(constraint_sql)
 
@@ -137,7 +137,7 @@ rows: {}
                 sql = """ALTER TABLE {schema}.{table_name} {add_fields}; """.format(**params)
                 self.execute(sql, 'alter <cyan>{}</> '.format(params['table_name']))
             add_indexes = ''
-            for index_name, index_sql in indexes.items():
+            for index_name, index_sql in list(indexes.items()):
                 if not index_name in db_tbl:
                     add_indexes += '{};\r\n '.format(index_sql)
             if add_indexes:
@@ -186,7 +186,7 @@ rows: {}
 
     def __get_fk_constraints(self, table_cls: AbstractOrderderTable) -> str:
         constraints = {}
-        for name, ref in table_cls.__ordereddict__.items():
+        for name, ref in list(table_cls.__ordereddict__.items()):
             if isinstance(ref, FkReference):
                 params = {}
                 params['schema'] = table_cls.__dbschema__
@@ -217,7 +217,7 @@ rows: {}
         if not self.layer.is_reflected:
             self.layer.reflect()
 
-        for db_func in db_functions.values():
+        for db_func in list(db_functions.values()):
             complete_name = db_func.get_complete_name()
             if complete_name not in self.layer.functions:
                 sql = db_func.to_create_sql()
@@ -450,7 +450,7 @@ class DdlDv(Ddl):
             return
         super().create_or_alter_table(entity.Hub)
         sats = entity.cls_get_sats()
-        for sat in sats.values():
+        for sat in list(sats.values()):
             super().create_or_alter_table(sat)
         return
 
@@ -459,7 +459,7 @@ class DdlDv(Ddl):
             return
         super().create_or_alter_table(link_entity.Link)
         sats = link_entity.cls_get_sats()
-        for sat in sats.values():
+        for sat in list(sats.values()):
             super().create_or_alter_table(sat)
 
     def create_or_alter_view(self, entity_cls: 'HubEntity'):
@@ -485,7 +485,7 @@ class DdlDv(Ddl):
 
         all_sats = entity_cls.__sats__
 
-        for sat_cls in all_sats.values():
+        for sat_cls in list(all_sats.values()):
             params['sat'] = sat_cls.cls_get_name()
 
             if sat_cls.__base__ == HybridSat:
@@ -583,7 +583,7 @@ CREATE OR REPLACE VIEW {dv_schema}.{view_name} AS
         sql_conditions = ''
         params = {'schema_name': 'dv'}
 
-        for alias, cls in ensemble.entity_dict.items():
+        for alias, cls in list(ensemble.entity_dict.items()):
             cls.cls_init()
             cls.entity_name = cls.cls_get_name().strip('_entity')
             cls.view_name = cls.cls_get_name().strip('_entity') + '_view'
@@ -724,7 +724,7 @@ class DdlDatamart(Ddl):
             add_fields = ''
             refected_column_names = [col.name for col in fact_table.columns]
 
-            for col_name, col in fact_cls.__ordereddict__.items():
+            for col_name, col in list(fact_cls.__ordereddict__.items()):
                 if isinstance(col, Column):
                     if not col_name in refected_column_names:
                         add_fields += 'ADD COLUMN {} {}, '.format(col.name, col.type)
@@ -749,7 +749,7 @@ class DdlDatamart(Ddl):
 
     def __get_indexes(self, fact_cls,params):
         fields = ''
-        for name, field in fact_cls.__ordereddict__.items():
+        for name, field in list(fact_cls.__ordereddict__.items()):
             if isinstance(field, DmReference):
                 params['fk_fieldname'] = name
                 fields += 'CREATE INDEX ix_{fk_fieldname}_{facttable} ON {dm}.{facttable}({fk_fieldname});\n'.format(**params)
@@ -757,7 +757,7 @@ class DdlDatamart(Ddl):
 
     def __get_constraints(self,fact_cls,params):
         fields = ''
-        for name, field in fact_cls.__ordereddict__.items():
+        for name, field in list(fact_cls.__ordereddict__.items()):
             if isinstance(field, DmReference):
                 params['fk_fieldname'] = name
                 params['dim_tabel'] = field.dim_cls.cls_get_name()

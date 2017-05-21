@@ -66,7 +66,7 @@ class Dim(AbstractOrderderTable):
     @classmethod
     def cls_to_pygram_mapping(cls):
         d = {}
-        for col_name, col in cls.__ordereddict__.items():
+        for col_name, col in list(cls.__ordereddict__.items()):
             if isinstance(col, Column):
                 d[col_name] = 'null' #col.default_value
         return d
@@ -87,7 +87,7 @@ class Fact(AbstractOrderderTable):
     @classmethod
     def cls_get_measure_names(cls):
         list_col_names = []
-        for col_name, col in cls.__ordereddict__.items():
+        for col_name, col in list(cls.__ordereddict__.items()):
             if not isinstance(col, DmReference) and isinstance(col,Column):
                 list_col_names.append(col_name)
         return list_col_names
@@ -95,7 +95,7 @@ class Fact(AbstractOrderderTable):
     @classmethod
     def cls_get_key_names(cls):
         list_col_names = []
-        for col_name, col in cls.__ordereddict__.items():
+        for col_name, col in list(cls.__ordereddict__.items()):
             if isinstance(col, DmReference):
                 list_col_names.append(col.fk)
         return list_col_names

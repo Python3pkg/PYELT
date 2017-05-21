@@ -146,7 +146,7 @@ def make_doc_from_docstring(cls):
         wiki_syntax += clean_docstring(cls.__doc__)
         wiki_syntax += '\n\n'
     sat_classes = cls.cls_get_this_class_sats()
-    for sat_cls in sat_classes.values():
+    for sat_cls in list(sat_classes.values()):
         if sat_cls.__doc__:
             wiki_syntax += "__//{}//__: ".format(sat_cls.name)
             wiki_syntax += clean_docstring(sat_cls.__doc__)
@@ -202,7 +202,7 @@ def make_entity_graph(entity_cls: DvEntity, module_color='black'):
 
     # sat_classes = entity_cls.get_sats()
     # for sat_cls in sat_classes.values():
-    for key, sat_cls in entity_cls.__dict__.items():
+    for key, sat_cls in list(entity_cls.__dict__.items()):
         if inspect.isclass(sat_cls) and Sat in sat_cls.__mro__:
             sat_cls.cls_init_cols()
             if sat_cls.__base__ == HybridSat:
@@ -244,7 +244,7 @@ def make_sub_entity_graph(base_cls: DvEntity, sub_cls: DvEntity, module_color='b
     graph_syntax += """{0} -> {1} [arrowhead="onormal"];\n""".format(sub_ent_name, base_name)
     # sat_classes = entity_cls.get_sats()
     # for sat_cls in sat_classes.values():
-    for key, sat_cls in sub_cls.__dict__.items():
+    for key, sat_cls in list(sub_cls.__dict__.items()):
         if inspect.isclass(sat_cls) and Sat in sat_cls.__mro__:
             sat_cls.cls_init_cols()
             if sat_cls.__base__ == HybridSat:
@@ -275,7 +275,7 @@ def make_link_graph(link_cls, module_color='black'):
         link_refs = link_cls.cls_get_link_refs()
         graph_syntax += """{0} [shape="box" penwidth="3" color="{1}" URL="" style="filled" gradientangle="270" fillcolor="white:#FF9999"];\n""".format(link_cls.__name__, module_color)
 
-        for name, link_ref in link_refs.items():
+        for name, link_ref in list(link_refs.items()):
             if name.lower() != link_ref.entity_cls.__name__.lower():
                 n = link_ref.entity_cls.__name__
                 graph_syntax += """{} -> {} [label="{}"];\n""".format(link_ref.entity_cls.hub.name, link_cls.__name__, name)

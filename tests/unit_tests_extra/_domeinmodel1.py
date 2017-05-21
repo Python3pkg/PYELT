@@ -48,5 +48,5 @@ class OrganisatieHandelingLink(Link):
 #         print(n[0], n[1].type)
 # # print(Organisatie.Adres.__dict__)
 
-for k, v in Organisatie.Adres.__ordereddict__.items():
-    print(k, v)
+for k, v in list(Organisatie.Adres.__ordereddict__.items()):
+    print((k, v))

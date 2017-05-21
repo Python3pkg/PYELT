@@ -50,9 +50,9 @@ if __name__ == '__main__':
         if len(args) != 4:
             print('usage: encrypt.py [encode|decode] "[key]" "[string]"')
         elif 'enc' in args[1]:
-            print(SimpleEncrypt.encode(args[2], args[3]))
+            print((SimpleEncrypt.encode(args[2], args[3])))
         elif 'dec' in args[1]:
-            print(SimpleEncrypt.decode(args[2], args[3]))
+            print((SimpleEncrypt.decode(args[2], args[3])))
         else:
             print('usage: encrypt.py [encode|decode] "[key]" "[string]"')
 

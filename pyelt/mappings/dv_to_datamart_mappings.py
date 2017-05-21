@@ -72,7 +72,7 @@ class DvToDimMapping(BaseTableMapping):
     def __get_join(self, dv_schema):
         sql_join = ""
         sats = self.__get_sats()
-        for key, sat_props in sats.items():
+        for key, sat_props in list(sats.items()):
             params = {}
             params['dv_schema'] = dv_schema
             params['sat'] =sat_props['sat_name']
@@ -126,7 +126,7 @@ class DvToFactMapping(BaseTableMapping):
     def to_pygram_mapping(self):
         fact = self.target
         d = {}
-        for col_name, col in fact.__ordereddict__.items():
+        for col_name, col in list(fact.__ordereddict__.items()):
             if isinstance(col, DmReference) or isinstance(col, Column):
                 d[col_name] = 'null'  # col.default_value
         for field_mapping in self.field_mappings:

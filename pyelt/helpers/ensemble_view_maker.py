@@ -13,7 +13,7 @@ for cls in patient_ensemble:
         sql_from += view_name + ','
     else:
         sql_from += cls.get_name() + ','
-        for prop_name, link_ref in cls.__dict__.items():
+        for prop_name, link_ref in list(cls.__dict__.items()):
             if isinstance(link_ref, LinkReference) or isinstance(link_ref, DynamicLinkReference):
                 if 'entity_cls' in link_ref.__dict__ and link_ref.entity_cls in patient_ensemble:
                     hub_name = link_ref.entity_cls.cls_get_hub_name()
@@ -37,17 +37,17 @@ class Foo():
 
 
 f = Foo()
-for name, prop in f.__dict__.items():
-    print(name, prop)
+for name, prop in list(f.__dict__.items()):
+    print((name, prop))
     if name == 'datum':
         f.__dict__[name] = 'nu ben ik ook wat'
 
-print(f.__dict__)
-print(f.__dict__.keys())
-print(f.__dict__.items())
-print(f.__dict__.get('naam'))
-print(f.datum)
-print(Foo.__dict__)
+print((f.__dict__))
+print((list(f.__dict__.keys())))
+print((list(f.__dict__.items())))
+print((f.__dict__.get('naam')))
+print((f.datum))
+print((Foo.__dict__))
 
 pipeline = get_global_test_pipeline()
 pipe = pipeline.get_or_create_pipe('test_system', config=test_system_config)

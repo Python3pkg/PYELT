@@ -86,7 +86,7 @@ class DvData():
         return row
 
     def save(self):
-        for row in self.rows.values():
+        for row in list(self.rows.values()):
             if row.db_status == DBStatus.new:
                 self._save_new_row(row)
             elif row.db_status == DBStatus.changed:
@@ -195,7 +195,7 @@ class SatData(DvData):
         for row in rows:
             sat = Row()
             sat.__dict__['db_status'] = DBStatus.loaded
-            for field_name, field_value in row.items():
+            for field_name, field_value in list(row.items()):
                 sat.__dict__[field_name] = field_value
             # self.rows.append(sat)
             self.rows[sat._id] = sat
@@ -220,7 +220,7 @@ class SatData(DvData):
         params['_revision'] = 1
         field_names = ''
         field_values = ''
-        for fld_name, fld_value in row.__dict__.items():
+        for fld_name, fld_value in list(row.__dict__.items()):
             if not (fld_name.startswith('_') or fld_name == 'db_status'):
                 field_names += fld_name + ', '
                 field_values += "'{}', ".format(fld_value)
@@ -252,13 +252,13 @@ WHERE NOT EXISTS (SELECT 1 FROM {dv}.{sat} WHERE _id={_id} AND _runid = {_runid}
             row = rows[0]
             sat = Row()
             sat.__dict__['db_status'] = DBStatus.loaded
-            for field_name, field_value in row.items():
+            for field_name, field_value in list(row.items()):
                 sat.__dict__[field_name] = field_value
             return sat
 
     def _update_row(self, old_row, new_row):
         is_changed = False
-        for fld_name, fld_value in new_row.__dict__.items():
+        for fld_name, fld_value in list(new_row.__dict__.items()):
             if not (fld_name.startswith('_') or fld_name == 'db_status'):
                 if fld_value != old_row.__dict__[fld_name]:
                     is_changed = True
@@ -278,7 +278,7 @@ WHERE NOT EXISTS (SELECT 1 FROM {dv}.{sat} WHERE _id={_id} AND _runid = {_runid}
         params['_revision'] = new_row._revision
         field_names = ''
         field_values = ''
-        for fld_name, fld_value in new_row.__dict__.items():
+        for fld_name, fld_value in list(new_row.__dict__.items()):
             if not (fld_name.startswith('_') or fld_name == 'db_status'):
                 field_names += fld_name + ', '
                 field_values += "'{}', ".format(fld_value)
@@ -324,7 +324,7 @@ class EntityData(DvData):
         self.hub = self.get_hub()
         sats_cls = self.__class__.get_sats()
         self.sats = {}
-        for sat_name, sat_cls in sats_cls.items():
+        for sat_name, sat_cls in list(sats_cls.items()):
             sat = sat_cls()
             self.sats[sat_name.lower()] = sat
 
@@ -340,7 +340,7 @@ class EntityData(DvData):
             entity.__dict__['_runid'] = row['_runid']
             entity.__dict__['bk'] = row['bk']
             entity.__dict__['db_status'] = DBStatus.loaded
-            for sat_name, sat in self.sats.items():
+            for sat_name, sat in list(self.sats.items()):
                 entity.__dict__[sat_name] = sat
 
             # self.rows.append(hub)

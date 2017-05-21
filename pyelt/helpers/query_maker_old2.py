@@ -79,12 +79,12 @@ class QueryMaker():
 
     def to_sql(self, dwh):
         select = ''
-        for alias, sql in self.__fields.items():
+        for alias, sql in list(self.__fields.items()):
             select += sql + ',\n'
         select = select[:-2]
         frm = ''
         first = True
-        for tbl_alias, ent in self.__tables.items():
+        for tbl_alias, ent in list(self.__tables.items()):
             if HubEntity in ent.__mro__:
                 frm += '{}.{} as {},\n'.format(ent.Hub.__dbschema__, ent.Hub.__dbname__, tbl_alias)
             elif LinkEntity in ent.__mro__ :
@@ -93,7 +93,7 @@ class QueryMaker():
                 frm += '{}.{} as {},\n'.format(ent.__dbschema__, ent.__dbname__, tbl_alias)
         frm = frm[:-2]
         where = ''
-        for join in self.__joins.values():
+        for join in list(self.__joins.values()):
             where += join + ' AND \n'
         where = where[:-5]
 
@@ -183,12 +183,12 @@ class QueryMaker2():
 
     def to_sql(self, dwh):
         select = ''
-        for alias, sql in self.__fields.items():
+        for alias, sql in list(self.__fields.items()):
             select += sql + ',\n'
         select = select[:-2]
         frm = ''
         first = True
-        for tbl_alias, ent in self.__tables.items():
+        for tbl_alias, ent in list(self.__tables.items()):
             if HubEntity in ent.__mro__:
                 frm += '{}.{} as {},\n'.format(ent.Hub.__dbschema__, ent.Hub.__dbname__, tbl_alias)
             elif LinkEntity in ent.__mro__ :
@@ -197,7 +197,7 @@ class QueryMaker2():
                 frm += '{}.{} as {},\n'.format(ent.__dbschema__, ent.__dbname__, tbl_alias)
         frm = frm[:-2]
         where = ''
-        for join in self.__joins.values():
+        for join in list(self.__joins.values()):
             where += join + ' AND \n'
         where = where[:-5]
 
@@ -211,13 +211,13 @@ class QueryMaker2():
 
     def to_sql2(self, param):
         select = ''
-        for alias, field in self.__fields.items():
+        for alias, field in list(self.__fields.items()):
             sql = '{}.{} as {}'.format(field.table.__dbname__, field.name, alias)
             select += sql + ',\n'
         select = select[:-2]
 
         frm = ''
-        for alias, tbl in self.__tables.items():
+        for alias, tbl in list(self.__tables.items()):
             first = alias, tbl
             frm += self.get_joins(alias, tbl)
             break
@@ -237,7 +237,7 @@ class QueryMaker2():
                     params['fk'] = link_ref.fk
                     params['hub_alias'] = hub_alias
                     frm += ' LEFT JOIN {schema}.{link} as {link_alias} ON {link_alias}.{fk} = {hub_alias}._id\n'.format(**params)
-                for sat_alias, sat in tbl['sats'].items():
+                for sat_alias, sat in list(tbl['sats'].items()):
                     frm += ' LEFT JOIN {0}.{1} as {1} ON {1}._id = {2}._id and {1}._active\n'.format(sat.__dbschema__, sat.__dbname__, hub_alias)
             elif isinstance(tbl, Link):
                 pass
@@ -247,12 +247,12 @@ class QueryMaker2():
         return sql
 
     def __get_link_ref_by_hub(self, hub) -> LinkReference:
-        for name, join in self.__joins.items():
+        for name, join in list(self.__joins.items()):
             ref = join #type: LinkReference
             if ref.ref_table.__dbname__ == hub.__dbname__:
                 return ref
 
     def get_joins(self, alias, tbl):
         frm = ''
-        for alias, tbl in self.__tables.items():
+        for alias, tbl in list(self.__tables.items()):
             frm += self.get_joins(alias, tbl)

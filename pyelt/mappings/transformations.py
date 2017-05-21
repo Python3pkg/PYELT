@@ -43,7 +43,7 @@ class FieldTransformation():
     def get_sql(self, alias: str='')->str:
         sql = ''
         index = 0
-        steps = sorted(self.steps.values(), key = lambda x: x.sort_order)
+        steps = sorted(list(self.steps.values()), key = lambda x: x.sort_order)
         for step in steps:
             # step_sql = step.sql
             step_sql = step.get_sql(alias)
@@ -93,7 +93,7 @@ class FieldTransformStep(FieldTransformation):
             if not func_param_name: continue
             func_param = FuncParam(func_param_name.strip())
             func_params.append(func_param)
-        self.func_name = func_name
+        self.__name__ = func_name
         self.func_params = func_params
 
     def get_sql(self, alias: str='') -> str:
@@ -141,7 +141,7 @@ class Lookup(FieldTransformation):
 
     def get_etl(self):
         values = ''
-        for code, descr in self.dict.items():
+        for code, descr in list(self.dict.items()):
             values += "('{}', '{}'),\r\n".format(code, descr)
         values = values[:-3]
         params = {}

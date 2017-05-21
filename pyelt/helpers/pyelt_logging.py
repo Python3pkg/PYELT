@@ -224,4 +224,4 @@ ERROR: {}
     def test_show_all_colors(self):
         for i in range(120):
             s = '\033[{}mDIT IS FORMAT. \033[0mDit niet.'.format(i)
-            print(i, s)
+            print((i, s))

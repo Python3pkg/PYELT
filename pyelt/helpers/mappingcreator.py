@@ -28,7 +28,7 @@ class MappingWriter():
         s += """\r\n\r\n"""
         s += """    mapping = SorToEntityMapping('{0}', {1}, sor)\r\n""".format(sor_table, entity.__name__)
         s += """    mapping.map_bk([''])\r\n""".format(sor_table, entity.__name__)
-        for sat_name, sat in entity.cls_get_sats().items():
+        for sat_name, sat in list(entity.cls_get_sats().items()):
             # sat.cls_init_cols()
             s += """\r\n""".format(sor_table, entity.__name__)
             s += """    #SAT {}.{}\r\n""".format(entity.__name__, sat_name)
@@ -43,7 +43,7 @@ class MappingWriter():
                 if sat.__base__ == HybridSat:
                     first_type = ''
                     if 'Types' in sat.__dict__:
-                        for k, name in sat.Types.__dict__.items():
+                        for k, name in list(sat.Types.__dict__.items()):
                             if not k.startswith('__'):
                                 first_type = k
                                 break

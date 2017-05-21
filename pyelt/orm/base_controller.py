@@ -17,7 +17,7 @@ class Controller:
         entity.__dict__['bk'] = bk
         entity.__dict__['_runid'] = runid
         entity.__dict__['type'] = self.entity_cls.cls_get_name()
-        for sat_name, sat_cls in self.__class__.entity_cls.cls_get_sats().items():
+        for sat_name, sat_cls in list(self.__class__.entity_cls.cls_get_sats().items()):
             sat = sat_cls()
             sat.__dict__['_id'] = 0
             sat.__dict__['dbstatus'] = DBStatus.initialised
@@ -38,16 +38,16 @@ class Controller:
         rows = self.dwh.execute_read(sql, '')
         for row in rows:
             entity = self.__class__.entity_cls()
-            for field_name, field_value in row.items():
+            for field_name, field_value in list(row.items()):
                 entity.__dict__[field_name] = field_value
                 entity.__dict__['dbstatus'] = DBStatus.unchanged
                 entity.__dict__['loaded_row'] = row
-                for sat_name, sat_cls in self.__class__.entity_cls.cls_get_sats().items():
+                for sat_name, sat_cls in list(self.__class__.entity_cls.cls_get_sats().items()):
                     sat = sat_cls()
                     sat.__dict__['dbstatus'] = DBStatus.unchanged
                     sat.__dict__['_id'] = row['_id']
                     entity.__dict__[sat_name] = sat
-                    for view_field_name, field_value in row.items():
+                    for view_field_name, field_value in list(row.items()):
                         field_name = view_field_name.replace(sat_name.lower() + '_', '')
                         if field_name in sat_cls.__dict__:
                             sat.__dict__[field_name] = field_value
@@ -68,9 +68,9 @@ class Controller:
         for row in rows:
             entity = self.__class__.entity_cls()
             entity.__dict__['dbstatus'] = DBStatus.initialised
-            for field_name, field_value in row.items():
+            for field_name, field_value in list(row.items()):
                 entity.__dict__[field_name] = field_value
-            for sat_name, sat_cls in self.__class__.entity_cls.cls_get_sats().items():
+            for sat_name, sat_cls in list(self.__class__.entity_cls.cls_get_sats().items()):
                 sat = sat_cls()
                 sat.__dict__['_id'] = row['_id']
                 sat.__dict__['dbstatus'] = DBStatus.initialised
@@ -82,14 +82,14 @@ class Controller:
         return return_list
 
     def load_sat(self, sat):
-        print(sat.cls_get_name())
+        print((sat.cls_get_name()))
         params = {'dv': 'dv', 'sat': sat.__class__.cls_get_name(), 'id': sat._id}
         sql = """SELECT * FROM {dv}.{sat} WHERE _id = {id} AND _active""".format(**params)
         print(sql)
         rows = self.dwh.execute_read(sql, '')
         if rows:
             row = rows[0]  # {'voornaam': 'asd', 'achternaam': 'asdahgd'}
-            for field_name, field_value in row.items():
+            for field_name, field_value in list(row.items()):
                 sat.__dict__[field_name] = field_value
             sat.__dict__['dbstatus'] = DBStatus.loaded
         else:
@@ -108,7 +108,7 @@ class Controller:
         # entity = self.check_changed(entity)
         if entity.dbstatus == DBStatus.new:
             self.save_new_hub(entity)
-        for sat_name, sat in entity.sats().items():
+        for sat_name, sat in list(entity.sats().items()):
             if sat.dbstatus == DBStatus.new:
                 self.save_new_sat(entity, sat)
             elif sat.dbstatus == DBStatus.changed:
@@ -121,15 +121,15 @@ class Controller:
             # insert hub
             # insert sats
         elif entity.dbstatus == DBStatus.changed:
-            for sat_name, sat in entity.sats().items():
+            for sat_name, sat in list(entity.sats().items()):
                 if sat.dbstatus == DBStatus.changed:
                     self.save_sat(sat, 99.02)
 
     def check_changed_old(self, entity):
         if entity.dbstatus == DBStatus.new:
             return entity
-        for sat_name, sat in entity.sats().items():
-            for fld_name, fld in sat.__dict__.items():
+        for sat_name, sat in list(entity.sats().items()):
+            for fld_name, fld in list(sat.__dict__.items()):
                 view_fld_name = sat_name.lower() + '_' + fld_name
                 if view_fld_name in entity.__dict__ and fld != entity.__dict__[view_fld_name]:
                     sat.dbstatus = DBStatus.changed
@@ -159,7 +159,7 @@ WHERE NOT EXISTS (SELECT 1 FROM {dv}.{hub} WHERE bk='{bk}') RETURNING _id;""".fo
         params['sat'] = sat.__class__.cls_get_name()
         field_names = ''
         field_values = ''
-        for fld_name, fld_value in sat.__dict__.items():
+        for fld_name, fld_value in list(sat.__dict__.items()):
             if not (fld_name.startswith('_') or fld_name == 'dbstatus'):
                 field_names += fld_name + ', '
                 field_values += "'{}', ".format(fld_value)
@@ -193,7 +193,7 @@ INSERT INTO {dv}.{sat} ({fixed_field_names}, {field_names}) VALUES ({fixed_value
         params['_revision'] = 1
         field_names = ''
         field_values = ''
-        for fld_name, fld_value in sat.__dict__.items():
+        for fld_name, fld_value in list(sat.__dict__.items()):
             if not (fld_name.startswith('_') or fld_name == 'dbstatus'):
                 field_names += fld_name + ', '
                 field_values += "'{}', ".format(fld_value)

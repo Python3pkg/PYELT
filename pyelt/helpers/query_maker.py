@@ -156,10 +156,10 @@ class QueryMaker():
 
     def to_sql(self):
         select = ''
-        if not self.__fields.items():
+        if not list(self.__fields.items()):
             select = '*'
         else:
-            for field, sql in self.__fields.items():
+            for field, sql in list(self.__fields.items()):
                 select += '  ' + sql + ',\n'
         select = select[:-2]
 
@@ -190,7 +190,7 @@ class QueryMaker():
             tables_in_from[table_name] = table_name
             join, table_name, table = self.__find_in_joins(table_name, tables_in_from)
             if not join:
-                for table_name in tables_in_from.keys():
+                for table_name in list(tables_in_from.keys()):
                     join, table_name, table = self.__find_in_joins(table_name, tables_in_from)
                     if join:
                         break

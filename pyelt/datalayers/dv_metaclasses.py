@@ -53,7 +53,7 @@ class OrderedTableMetaClass(type):
             new_dvtable_cls.__dbname__ = new_dvtable_cls.cls_create_dbname()
         new_dvtable_cls.__cols__ = []
         # door alle kolommen loopen en hier een kopie van maken en die toevoegen aan de class.
-        for prop_name, prop in new_dvtable_cls.__ordereddict__.items():
+        for prop_name, prop in list(new_dvtable_cls.__ordereddict__.items()):
             if prop_name == 'aanvragend_specialisme':
                 debug = True
             if isinstance(prop, Columns.RefColumn):
@@ -125,7 +125,7 @@ class HubEntityMetaClass(type):
         # satnames zetten
         new_hub_entity_cls.__sats__ = OrderedDict()
         from pyelt.datalayers.dv import Sat
-        for key, sat_cls in new_hub_entity_cls.__dict__.items():
+        for key, sat_cls in list(new_hub_entity_cls.__dict__.items()):
             if inspect.isclass(sat_cls) and Sat in sat_cls.__mro__ :
                 sat_cls.__dbschema__ = entity_with_hub.__dbschema__
                 sat_name = camelcase_to_underscores(key).replace('_sat', '').replace('sat', '')
@@ -139,7 +139,7 @@ class HubEntityMetaClass(type):
         # sat collectie maken
         new_hub_entity_cls.__sats__ = OrderedDict()
         for base in reversed(new_hub_entity_cls.__mro__):
-            for key, sat_cls in base.__dict__.items():
+            for key, sat_cls in list(base.__dict__.items()):
                 if inspect.isclass(sat_cls) and Sat in sat_cls.__mro__:
                     new_hub_entity_cls.__sats__[sat_cls.name] = sat_cls
         return new_hub_entity_cls
@@ -165,14 +165,14 @@ class LinkEntityMetaClass(type):
 
         # link class in link_refs zetten
         from pyelt.datalayers.dv import LinkReference
-        for key, link_ref in link_cls.__dict__.items():
+        for key, link_ref in list(link_cls.__dict__.items()):
             if type(link_ref) is LinkReference:
                 link_ref.link = link_cls
 
         # satnames zetten
         new_link_entity_cls.__sats__ = OrderedDict()
         from pyelt.datalayers.dv import Sat
-        for key, sat_cls in new_link_entity_cls.__dict__.items():
+        for key, sat_cls in list(new_link_entity_cls.__dict__.items()):
             if inspect.isclass(sat_cls) and Sat in sat_cls.__mro__:
                 sat_cls.__dbschema__ = entity_with_link.__dbschema__
                 sat_name = camelcase_to_underscores(key).replace('_sat', '').replace('sat', '')
@@ -183,7 +183,7 @@ class LinkEntityMetaClass(type):
         # sat collectie maken
         new_link_entity_cls.__sats__ = OrderedDict()
         for base in reversed(new_link_entity_cls.__mro__):
-            for key, sat_cls in base.__dict__.items():
+            for key, sat_cls in list(base.__dict__.items()):
                 if inspect.isclass(sat_cls) and Sat in sat_cls.__mro__:
                     new_link_entity_cls.__sats__[sat_cls.name] = sat_cls
         return new_link_entity_cls

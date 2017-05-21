@@ -21,7 +21,7 @@ def main():
     patient.inschrijving.inschrijfnummer = '123123'
     patienten.save_entity(patient)
     for r in list:
-        print(r.__dict__)
+        print((r.__dict__))
 
     runid = pipeline.create_new_runid()
     new_patient = patienten.new(bk='12345a', runid=runid)

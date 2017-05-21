@@ -69,7 +69,7 @@ class QueryMaker():
     def __get_join(self):
         sql_join = ""
         sats = self.__sats
-        for sat_name, sat in sats.items():
+        for sat_name, sat in list(sats.items()):
             params = {}
             params['dv_schema'] = sat.__dbschema__
             params['sat'] =sat_name
@@ -109,7 +109,7 @@ class QueryMaker():
         self.__hubs = {}
         self.__entities = {}
         fields = ''
-        for alias, elm in self.__elements.items():
+        for alias, elm in list(self.__elements.items()):
             if isinstance(elm, Column):
                 col = elm
                 hub_name = col.table.__dbname__[:col.table.__dbname__.find('_sat')] + '_hub'
@@ -130,16 +130,16 @@ class QueryMaker():
     def __get_from(self):
         from_sql = ''
         params = {}
-        for hub_name, hub in self.__hubs.items():
+        for hub_name, hub in list(self.__hubs.items()):
             params['hub'] = hub_name
             params['schema'] = hub.__dbschema__
             if not from_sql:
                 from_sql = """{schema}.{hub} AS {hub} \n""".format(**params)
 
-        for link_name, link in self.__links.items():
+        for link_name, link in list(self.__links.items()):
             params['link'] = link_name
             params['schema'] = link.__dbschema__
-            for ref in link.__dict__.values():
+            for ref in list(link.__dict__.values()):
                 if ref.ref_name == hub_name:
                     pass
             from_sql += """LEFT OUTER JOIN {schema}.{link} AS {link} ON {link}.{fk_hub} = {hub}._id\n""".format(**params)
@@ -244,12 +244,12 @@ class QueryMaker2():
 
     def to_sql(self, dwh):
         select = ''
-        for alias, sql in self.__fields.items():
+        for alias, sql in list(self.__fields.items()):
             select += sql + ',\n'
         select = select[:-2]
         frm = ''
         first = True
-        for tbl_alias, ent in self.__tables.items():
+        for tbl_alias, ent in list(self.__tables.items()):
             if HubEntity in ent.__mro__:
                 frm += '{}.{} as {},\n'.format(ent.Hub.__dbschema__, ent.Hub.__dbname__, tbl_alias)
             elif LinkEntity in ent.__mro__ :
@@ -258,7 +258,7 @@ class QueryMaker2():
                 frm += '{}.{} as {},\n'.format(ent.__dbschema__, ent.__dbname__, tbl_alias)
         frm = frm[:-2]
         where = ''
-        for join in self.__joins.values():
+        for join in list(self.__joins.values()):
             where += join + ' AND \n'
         where = where[:-5]
 

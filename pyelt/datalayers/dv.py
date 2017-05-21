@@ -77,7 +77,7 @@ class HybridSat(Sat):
     @classmethod
     def cls_get_types(cls) -> List[str]:
         types = []
-        for key, val in cls.Types.__dict__.items():
+        for key, val in list(cls.Types.__dict__.items()):
             if not key.startswith('__'):
                 types.append(val)
         return types
@@ -90,7 +90,7 @@ class Link(DvTable):
     @classmethod
     def cls_get_link_refs(cls):
         link_refs = {}
-        for prop_name, link_ref in cls.__dict__.items():
+        for prop_name, link_ref in list(cls.__dict__.items()):
             if isinstance(link_ref, LinkReference):
                 link_refs[prop_name] = link_ref
         return link_refs
@@ -103,7 +103,7 @@ class HybridLink(Link):
     @classmethod
     def cls_get_types(cls):
         types = []
-        for key, val in cls.Types.__dict__.items():
+        for key, val in list(cls.Types.__dict__.items()):
             if not key.startswith('__'):
                 types.append(val)
         return types
@@ -176,7 +176,7 @@ class HubEntity(metaclass=HubEntityMetaClass):
 
     @classmethod
     def cls_get_record_status_sat(cls) -> RecordStatusSat:
-        for key, sat in cls.__sats__.items():
+        for key, sat in list(cls.__sats__.items()):
             if sat.__base__ == RecordStatusSat:
                 return sat
 
@@ -214,7 +214,7 @@ class LinkEntity(metaclass=LinkEntityMetaClass):
 
     @classmethod
     def cls_get_record_status_sat(cls) -> RecordStatusSat:
-        for key, sat in cls.__sats__.items():
+        for key, sat in list(cls.__sats__.items()):
             if sat.__base__ == RecordStatusSat:
                 return sat
 
